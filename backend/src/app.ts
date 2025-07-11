@@ -9,7 +9,7 @@ const app = express();
 
 // --- Global Middleware ---
 app.use(helmet()); // security headers
-app.use(cors()); // allow cross-origin requests
+app.use(cors()); // allow cross-origin requests (from client, server ok)
 app.use(morgan("dev")); // request logger
 app.use(express.json()); // parse JSON bodies
 
