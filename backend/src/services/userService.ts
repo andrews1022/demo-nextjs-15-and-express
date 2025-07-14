@@ -8,6 +8,12 @@ import type { CreateUserInput, User } from "@/types/users";
 const BCRYPT_SALT_ROUNDS = 10;
 
 export class UserService {
+  // method for password verification (e.g., during login)
+  async verifyPassword(plainTextPassword: string, hashedPasswordFromDb: string): Promise<boolean> {
+    return bcrypt.compare(plainTextPassword, hashedPasswordFromDb);
+  }
+
+  // method to create a new user
   async createUser(userData: CreateUserInput): Promise<User> {
     // destructure to separate password
     const { password, ...restUserData } = userData;
@@ -33,4 +39,10 @@ export class UserService {
 
     return userWithoutPassword as User; // Cast back to User type
   }
+
+  // we could also add methods here for:
+  // - find user by email --> findUserByEmail(email: string): Promise<User | undefined>
+  // - find user by id --> findUserById(id: string): Promise<User | undefined>
+  // - update user password --> updateUserPassword(id: string, newPassword: string): Promise<void>
+  // etc.
 }
