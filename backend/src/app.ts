@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import { errorHandler } from "@/middlewares/errorHandler";
+import { userRouter } from "@/routes/userRouter";
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.get("/api", (req: Request, res: Response) => {
 
 // --- API Routes ---
 // Mount specific route modules here
-// e.g. --> app.use("/api/dogs", dogRouter);
+app.use("/api/users", userRouter);
 
 // --- Error Handling Middleware ---
 // This must be the LAST middleware mounted, after all routes and other middleware.
