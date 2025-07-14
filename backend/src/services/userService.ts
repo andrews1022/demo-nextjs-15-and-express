@@ -1,20 +1,7 @@
 import { db } from "@/drizzle/db";
 import { usersTable } from "@/drizzle/schema";
 
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type CreateUserInput = {
-  name: string;
-  email: string;
-  password: string;
-};
+import type { CreateUserInput, User } from "@/types/users";
 
 export class UserService {
   async createUser(userData: CreateUserInput): Promise<User> {
