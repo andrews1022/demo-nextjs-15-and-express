@@ -1,7 +1,7 @@
 import { Router } from "express";
+
 import { AuthController } from "@/controllers/authController";
-// We will import the authentication middleware here later to protect /me
-// import { authenticateToken } from "@/middlewares/authMiddleware";
+import { authenticateToken } from "@/middlewares/authMiddleware";
 
 const authRouter = Router();
 const authController = new AuthController();
@@ -10,7 +10,7 @@ const authController = new AuthController();
 authRouter.post("/login", authController.login);
 
 // Route for fetching authenticated user's profile
-// This route will be protected by authentication middleware
-authRouter.get("/me", authController.getProfile); // Will add authenticateToken middleware here later
+// This route is now protected by the authenticateToken middleware
+authRouter.get("/me", authenticateToken, authController.getProfile);
 
 export { authRouter };
