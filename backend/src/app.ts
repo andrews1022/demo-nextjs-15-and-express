@@ -20,7 +20,7 @@ app.get("/api", (req: Request, res: Response) => {
 });
 
 // --- API Routes ---
-// Mount specific route modules here
+// Mount user-related routes (e.g., /api/users/register)
 app.use("/api/users", userRouter);
 
 // --- Error Handling Middleware ---
