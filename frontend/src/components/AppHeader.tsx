@@ -9,12 +9,18 @@ const AppHeader = () => {
             <Link href="/">Home</Link>
           </li>
 
+          {/* when not signed in */}
           <li>
             <Link href="/sign-in">Sign In</Link>
           </li>
 
           <li>
             <Link href="/sign-up">Sign Up</Link>
+          </li>
+
+          {/* when signed in */}
+          <li>
+            <Link href="/profile">Profile</Link>
           </li>
         </ul>
       </nav>
