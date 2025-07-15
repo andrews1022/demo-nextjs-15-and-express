@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 
 // Define the shape of the user object that will be stored in the context
@@ -22,7 +22,7 @@ type AuthContextType = {
 };
 
 // Create the AuthContext with default values
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Define the props for the AuthProvider
 type AuthProviderProps = {
@@ -85,13 +85,4 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
-};
-
-// Custom hook to consume the AuthContext
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
 };
