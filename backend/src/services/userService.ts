@@ -15,29 +15,46 @@ export class UserService {
 
   // method to create a new user
   async createUser(userData: CreateUserInput): Promise<User> {
-    // destructure to separate password
     const { password, ...restUserData } = userData;
 
-    // has the password BEFORE inserting into the database
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
-    // create the user in the database with the hashed password
-    const [insertedUser] = await db
-      .insert(usersTable)
-      .values({
-        ...restUserData,
-        password: hashedPassword,
-      })
-      .returning();
+    try {
+      // Attempt to insert the user with the hashed password
+      const [insertedUser] = await db
+        .insert(usersTable)
+        .values({
+          ...restUserData,
+          password: hashedPassword,
+        })
+        .returning(); // .returning() will return the inserted row
 
-    if (!insertedUser) {
-      throw new Error("Failed to create user");
+      if (!insertedUser) {
+        // This case might happen if .returning() somehow returns an empty array,
+        // which is less likely with a successful insert but good for robustness.
+        throw new Error("Failed to create user: No user data returned after insert.");
+      }
+
+      // omit the password from the returned user object before sending it back to the client
+      const { password: _, ...userWithoutPassword } = insertedUser;
+
+      return userWithoutPassword as User;
+    } catch (error: any) {
+      console.log("create user error", JSON.stringify(error, null, 2));
+
+      // Catch potential errors from the database
+      // Check if it's a unique constraint violation error
+      if (error && error.cause.code === "23505") {
+        // Log the full error for debugging, but send a user-friendly message
+        console.error("Database unique constraint violation:", error.detail);
+        throw new Error("Email already registered. Please use a different email.");
+      }
+
+      // Re-throw other types of errors
+      console.error("Error creating user:", error); // Log the full error for debugging
+      throw new Error("Failed to create user due to a database error.");
     }
-
-    // omit the password from the returned user object before sending it back to the client
-    const { password: _, ...userWithoutPassword } = insertedUser;
-
-    return userWithoutPassword as User; // Cast back to User type
   }
 
   // we could also add methods here for:
