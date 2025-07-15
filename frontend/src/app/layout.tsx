@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import AppFooter from "@/components/AppFooter";
 import AppHeader from "@/components/AppHeader";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,11 +22,13 @@ type RootLayoutProps = {
 const RootLayout = ({ children }: RootLayoutProps) => {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AppHeader />
-        {children}
-        <AppFooter />
-      </body>
+      <AuthProvider>
+        <body className={inter.className}>
+          <AppHeader />
+          {children}
+          <AppFooter />
+        </body>
+      </AuthProvider>
     </html>
   );
 };
