@@ -47,7 +47,7 @@ export class UserService {
       // Check if it's a unique constraint violation error
       if (error && error.cause.code === "23505") {
         // Log the full error for debugging, but send a user-friendly message
-        console.error("Database unique constraint violation:", error.detail);
+        console.error("Database unique constraint violation:", error);
         throw new Error("Email already registered. Please use a different email.");
       }
 

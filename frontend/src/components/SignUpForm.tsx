@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
 const SignUpForm = () => {
@@ -9,6 +9,20 @@ const SignUpForm = () => {
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+
+  // State for button disabled status
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+
+  // State for form submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Disable the button if any input is empty, or if passwords do not match
+    const isAnyInputEmpty = !nameInput || !emailInput || !passwordInput || !confirmPasswordInput;
+    const doPasswordsMatch = passwordInput === confirmPasswordInput;
+
+    setIsButtonDisabled(isAnyInputEmpty || !doPasswordsMatch);
+  }, [nameInput, emailInput, passwordInput, confirmPasswordInput]);
 
   // State for validation errors
   const [errors, setErrors] = useState({
@@ -19,11 +33,14 @@ const SignUpForm = () => {
     generalError: "",
   });
 
-  // Function to handle form submission
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const resetInputs = () => {
+    setNameInput("");
+    setEmailInput("");
+    setPasswordInput("");
+    setConfirmPasswordInput("");
+  };
 
-    // Reset errors at the start of each submission attempt
+  const resetErrors = () => {
     setErrors({
       nameInputError: "",
       emailInputError: "",
@@ -31,7 +48,9 @@ const SignUpForm = () => {
       confirmPasswordInputError: "",
       generalError: "",
     });
+  };
 
+  const handleInputValidation = () => {
     let isValid = true; // Flag to track overall form validity
     const newErrors = { ...errors }; // Create a mutable copy of errors
 
@@ -70,15 +89,76 @@ const SignUpForm = () => {
     // update the error state
     setErrors(newErrors);
 
-    if (isValid) {
-      console.log("Form is valid! Submitting data:", { nameInput, emailInput, passwordInput });
+    // return the overall validity status
+    return isValid;
+  };
 
-      // clear the form fields after successful submission
-      setNameInput("");
-      setEmailInput("");
-      setPasswordInput("");
-      setConfirmPasswordInput("");
+  // Function to handle form submission
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Reset errors at the start of each submission attempt
+    resetErrors();
+
+    // Set submitting state to true
+    setIsSubmitting(true);
+
+    const isValid = handleInputValidation();
+
+    if (isValid) {
+      try {
+        const response = await fetch("http://localhost:4000/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: nameInput,
+            email: emailInput,
+            password: passwordInput,
+          }),
+        });
+
+        const responseData = await response.json();
+        console.log("data:", responseData);
+
+        if (!response.ok) {
+          // console.error("bad response:", responseData);
+          // throw new Error("Network response was not ok");
+
+          setErrors((prev) => {
+            return {
+              ...prev,
+              generalError: responseData.message || "An error occurred. Please try again.",
+            };
+          });
+
+          return;
+        }
+
+        // clear the form fields after successful submission and reset errors
+        resetInputs();
+        resetErrors();
+      } catch (error) {
+        console.error("error:", error);
+        // throw new Error("Network error occurred while submitting the form.");
+      } finally {
+        // Reset the submitting state after the request is complete
+        setIsSubmitting(false);
+      }
     }
+  };
+
+  // Function to handle blur on the confirm password field
+  const handleConfirmPasswordBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const doesntMatch = event.target.value !== passwordInput;
+
+    setErrors((prev) => {
+      return {
+        ...prev,
+        confirmPasswordInputError: doesntMatch ? "Passwords do not match." : "",
+      };
+    });
   };
 
   return (
@@ -147,14 +227,7 @@ const SignUpForm = () => {
           name="confirmPassword"
           required
           value={confirmPasswordInput}
-          onBlur={(event) => {
-            const doesntMatch = event.target.value !== passwordInput;
-
-            setErrors((prev) => ({
-              ...prev,
-              confirmPasswordInput: doesntMatch ? "Passwords do not match." : "",
-            }));
-          }}
+          onBlur={handleConfirmPasswordBlur}
           onChange={(event) => setConfirmPasswordInput(event.target.value)}
         />
         {errors.confirmPasswordInputError && (
@@ -162,7 +235,11 @@ const SignUpForm = () => {
         )}
       </div>
 
-      <button type="submit">Sign Up</button>
+      <button disabled={isButtonDisabled || isSubmitting} type="submit">
+        {isSubmitting ? "Loading..." : "Sign Up"}
+      </button>
+
+      {errors.generalError && <p style={{ color: "red" }}>{errors.generalError}</p>}
     </form>
   );
 };

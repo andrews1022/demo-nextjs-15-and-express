@@ -13,8 +13,10 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
 
   // Send a user-friendly error response (avoid exposing sensitive error details in production)
   res.json({
+    ok: false,
     message: err.message,
     // In development, you might send the stack trace for debugging:
     stack: config.nodeEnv === "production" ? "🥞" : err.stack,
+    status: statusCode,
   });
 };
