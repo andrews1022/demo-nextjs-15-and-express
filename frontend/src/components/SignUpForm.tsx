@@ -107,7 +107,7 @@ const SignUpForm = () => {
 
     if (isValid) {
       try {
-        const response = await fetch("http://localhost:4000/api/users", {
+        const response = await fetch("http://localhost:4000/api/users/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

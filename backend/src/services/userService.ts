@@ -14,7 +14,7 @@ export class UserService {
   }
 
   // method to create a new user
-  async createUser(userData: CreateUserInput): Promise<User> {
+  async registerUser(userData: CreateUserInput): Promise<User> {
     const { password, ...restUserData } = userData;
 
     // Hash the password

@@ -6,7 +6,7 @@ import type { CreateUserInput } from "@/types/users";
 const userService = new UserService();
 
 export class UserController {
-  async createUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, email, password } = req.body as CreateUserInput;
 
@@ -16,7 +16,7 @@ export class UserController {
         return;
       }
 
-      const newUser = await userService.createUser({ name, email, password });
+      const newUser = await userService.registerUser({ name, email, password });
       res.status(201).json(newUser);
     } catch (error) {
       next(error);
