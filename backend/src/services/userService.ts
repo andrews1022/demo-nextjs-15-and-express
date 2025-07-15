@@ -1,69 +1,127 @@
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/drizzle/db";
 import { usersTable } from "@/drizzle/schema";
-import { ConflictError, InternalServerError } from "@/errors/customErrors";
+import {
+  BadRequestError,
+  ConflictError,
+  HttpError,
+  InternalServerError,
+} from "@/errors/customErrors";
+import { generateToken } from "@/utils/jwt";
 import type { CreateUserInput, User } from "@/types/users";
 
 const BCRYPT_SALT_ROUNDS = 10;
 
+// Define a type for the successful authentication response
+// This is what loginUser and registerUser will return
+export type AuthResponse = {
+  user: Omit<User, "password">; // User data without the password
+  token: string;
+};
+
 export class UserService {
-  // method for password verification (e.g., during login)
+  // helper method for password verification (e.g., during login)
   async verifyPassword(plainTextPassword: string, hashedPasswordFromDb: string): Promise<boolean> {
     return bcrypt.compare(plainTextPassword, hashedPasswordFromDb);
   }
 
-  // method to create a new user
-  async registerUser(userData: CreateUserInput): Promise<User> {
+  // helper method to find a user by email (useful for both login and other checks)
+  async findUserByEmail(email: string): Promise<User | undefined> {
+    const [result] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+
+    return result;
+  }
+
+  // method to create a new user (and log them in automatically)
+  async registerUser(userData: CreateUserInput): Promise<AuthResponse> {
     const { password, ...restUserData } = userData;
 
-    // Hash the password
+    // hash the password
     const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     try {
-      // Attempt to insert the user with the hashed password
+      // attempt to insert the user with the hashed password
       const [insertedUser] = await db
         .insert(usersTable)
         .values({
           ...restUserData,
           password: hashedPassword,
         })
-        .returning(); // .returning() will return the inserted row
+        .returning();
 
       if (!insertedUser) {
-        // If no user data is returned after insert (highly unlikely for a successful insert)
         throw new InternalServerError("Failed to create user: No user data returned after insert.");
       }
 
-      // omit the password from the returned user object before sending it back to the client
+      // omit the password from the returned user object
       const { password: _, ...userWithoutPassword } = insertedUser;
 
-      return userWithoutPassword as User;
-    } catch (error: any) {
-      // Type 'any' used for simplicity, consider type guards for robustness
-      console.log("create user error", JSON.stringify(error, null, 2));
+      // generate jwt for the newly registered user
+      const token = generateToken({ userId: userWithoutPassword.id });
 
-      // Catch potential errors from the database
-      // Check if it's a unique constraint violation error (PostgreSQL error code '23505')
-      if (error && error.cause.code === "23505") {
-        // Drizzle's underlying error often has .code property
-        // Log the full database error for debugging
+      return { user: userWithoutPassword, token };
+    } catch (error: any) {
+      console.log("register user error", JSON.stringify(error, null, 2));
+
+      // check if it's a unique constraint violation error (PostgreSQL error code '23505')
+      if (error && error.code === "23505") {
         console.error("Database unique constraint violation:", error.detail);
-        // Throw a specific ConflictError for the frontend to handle
         throw new ConflictError("Email already registered. Please use a different email.", {
           field: "email",
         });
       }
 
-      // For any other unexpected errors, throw a generic InternalServerError
-      console.error("Error creating user:", error); // Log the full error for debugging
-      throw new InternalServerError("Failed to create user due to an unexpected database error.");
+      console.error("Error during user registration:", error);
+      throw new InternalServerError("Failed to register user due to an unexpected database error.");
     }
   }
 
-  // we could also add methods here for:
-  // - find user by email --> findUserByEmail(email: string): Promise<User | undefined>
-  // - find user by id --> findUserById(id: string): Promise<User | undefined>
-  // - update user password --> updateUserPassword(id: string, newPassword: string): Promise<void>
-  // etc.
+  // method to log in an existing user
+  async loginUser(email: string, plainTextPassword: string): Promise<AuthResponse> {
+    try {
+      const user = await this.findUserByEmail(email);
+
+      if (!user) {
+        // use BadRequestError for "invalid credentials" to avoid leaking whether email exists
+        throw new BadRequestError("Invalid credentials.");
+      }
+
+      const isPasswordValid = await this.verifyPassword(plainTextPassword, user.password);
+
+      if (!isPasswordValid) {
+        // use BadRequestError for "invalid credentials"
+        throw new BadRequestError("Invalid credentials.");
+      }
+
+      // omit the password before returning and generating the token
+      const { password: _, ...userWithoutPassword } = user;
+
+      // generate jwt for the authenticated user
+      const token = generateToken({ userId: userWithoutPassword.id });
+
+      return { user: userWithoutPassword, token };
+    } catch (error: any) {
+      // re-throw HttpErrors directly
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
+      console.error("Error during user login:", error);
+      throw new InternalServerError("Login failed due to an unexpected server error.");
+    }
+  }
+
+  // method to get a user by ID for profile page, without password
+  async getUserById(userId: string): Promise<Omit<User, "password"> | undefined> {
+    const [result] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+
+    if (result) {
+      const { password: _, ...userWithoutPassword } = result;
+      return userWithoutPassword;
+    }
+
+    return undefined;
+  }
 }
