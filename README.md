@@ -14,7 +14,7 @@ A simple full-stack application using Next.js and Express.js. Using mock data fr
   - REST API built with Express.js
   - Authentication
   - Packages used:
-    - `cors`: for handling CORS
+    - `cors`: for handling CORS (when fetching from client components, server components ok without)
     - `dotenv`: for environment variables
     - `morgan`: http request logger middleware
     - `helmet`: setting various HTTP headers for security
