@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 
 import { db } from "@/drizzle/db";
 import { usersTable } from "@/drizzle/schema";
-
+import { ConflictError, InternalServerError } from "@/errors/customErrors";
 import type { CreateUserInput, User } from "@/types/users";
 
 const BCRYPT_SALT_ROUNDS = 10;
@@ -31,9 +31,8 @@ export class UserService {
         .returning(); // .returning() will return the inserted row
 
       if (!insertedUser) {
-        // This case might happen if .returning() somehow returns an empty array,
-        // which is less likely with a successful insert but good for robustness.
-        throw new Error("Failed to create user: No user data returned after insert.");
+        // If no user data is returned after insert (highly unlikely for a successful insert)
+        throw new InternalServerError("Failed to create user: No user data returned after insert.");
       }
 
       // omit the password from the returned user object before sending it back to the client
@@ -41,19 +40,24 @@ export class UserService {
 
       return userWithoutPassword as User;
     } catch (error: any) {
+      // Type 'any' used for simplicity, consider type guards for robustness
       console.log("create user error", JSON.stringify(error, null, 2));
 
       // Catch potential errors from the database
-      // Check if it's a unique constraint violation error
+      // Check if it's a unique constraint violation error (PostgreSQL error code '23505')
       if (error && error.cause.code === "23505") {
-        // Log the full error for debugging, but send a user-friendly message
-        console.error("Database unique constraint violation:", error);
-        throw new Error("Email already registered. Please use a different email.");
+        // Drizzle's underlying error often has .code property
+        // Log the full database error for debugging
+        console.error("Database unique constraint violation:", error.detail);
+        // Throw a specific ConflictError for the frontend to handle
+        throw new ConflictError("Email already registered. Please use a different email.", {
+          field: "email",
+        });
       }
 
-      // Re-throw other types of errors
+      // For any other unexpected errors, throw a generic InternalServerError
       console.error("Error creating user:", error); // Log the full error for debugging
-      throw new Error("Failed to create user due to a database error.");
+      throw new InternalServerError("Failed to create user due to an unexpected database error.");
     }
   }
 

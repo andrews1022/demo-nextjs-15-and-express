@@ -16,14 +16,6 @@ const SignUpForm = () => {
   // State for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Disable the button if any input is empty, or if passwords do not match
-    const isAnyInputEmpty = !nameInput || !emailInput || !passwordInput || !confirmPasswordInput;
-    const doPasswordsMatch = passwordInput === confirmPasswordInput;
-
-    setIsButtonDisabled(isAnyInputEmpty || !doPasswordsMatch);
-  }, [nameInput, emailInput, passwordInput, confirmPasswordInput]);
-
   // State for validation errors
   const [errors, setErrors] = useState({
     nameInputError: "",
@@ -32,6 +24,14 @@ const SignUpForm = () => {
     confirmPasswordInputError: "",
     generalError: "",
   });
+
+  useEffect(() => {
+    // Disable the button if any input is empty, or if passwords do not match
+    const isAnyInputEmpty = !nameInput || !emailInput || !passwordInput || !confirmPasswordInput;
+    const doPasswordsMatch = passwordInput === confirmPasswordInput;
+
+    setIsButtonDisabled(isAnyInputEmpty || !doPasswordsMatch);
+  }, [nameInput, emailInput, passwordInput, confirmPasswordInput]);
 
   const resetInputs = () => {
     setNameInput("");
@@ -52,10 +52,16 @@ const SignUpForm = () => {
 
   const handleInputValidation = () => {
     let isValid = true; // Flag to track overall form validity
-    const newErrors = { ...errors }; // Create a mutable copy of errors
+    const newErrors = {
+      // Initialize newErrors based on current state
+      nameInputError: "",
+      emailInputError: "",
+      passwordInputError: "",
+      confirmPasswordInputError: "",
+      generalError: "",
+    };
 
-    // --- Validation Checks ---
-    // 1. All fields have a valid input (simple empty check for now)
+    // --- Client-Side Validation Checks ---
     if (!nameInput.trim()) {
       newErrors.nameInputError = "Name is required.";
       isValid = false;
@@ -65,13 +71,15 @@ const SignUpForm = () => {
       newErrors.emailInputError = "Email is required.";
       isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(emailInput)) {
-      // Basic email format validation
       newErrors.emailInputError = "Email is invalid.";
       isValid = false;
     }
 
     if (!passwordInput) {
       newErrors.passwordInputError = "Password is required.";
+      isValid = false;
+    } else if (passwordInput.length < 6) {
+      newErrors.passwordInputError = "Password must be at least 6 characters.";
       isValid = false;
     }
 
@@ -80,7 +88,6 @@ const SignUpForm = () => {
       isValid = false;
     }
 
-    // 2. passwords match
     if (passwordInput && confirmPasswordInput && passwordInput !== confirmPasswordInput) {
       newErrors.confirmPasswordInputError = "Passwords do not match.";
       isValid = false;
@@ -100,65 +107,98 @@ const SignUpForm = () => {
     // Reset errors at the start of each submission attempt
     resetErrors();
 
-    // Set submitting state to true
-    setIsSubmitting(true);
-
     const isValid = handleInputValidation();
 
-    if (isValid) {
-      try {
-        const response = await fetch("http://localhost:4000/api/users/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: nameInput,
-            email: emailInput,
-            password: passwordInput,
-          }),
-        });
+    if (!isValid) {
+      // If client-side validation fails, stop here
+      setErrors((prev) => ({
+        ...prev,
+        generalError: "Please correct the errors above before submitting.",
+      }));
+      return;
+    }
 
-        const responseData = await response.json();
-        console.log("data:", responseData);
+    // Set submitting state to true ONLY if client-side validation passes
+    setIsSubmitting(true);
 
-        if (!response.ok) {
-          // console.error("bad response:", responseData);
-          // throw new Error("Network response was not ok");
+    try {
+      const response = await fetch("http://localhost:4000/api/users/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: nameInput,
+          email: emailInput,
+          password: passwordInput,
+        }),
+      });
 
+      // Always parse JSON, even on error
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        // Backend sent an error response (e.g., 400, 409, 500)
+        console.error("Backend error response:", responseData);
+
+        // Check the error details to update specific input errors
+        if (responseData.details && responseData.details.field === "email") {
           setErrors((prev) => {
             return {
               ...prev,
-              generalError: responseData.message || "An error occurred. Please try again.",
+              emailInputError: responseData.message,
             };
           });
-
-          return;
+        } else if (responseData.message) {
+          // For other specific messages not tied to a field, or generic bad request
+          setErrors((prev) => {
+            return {
+              ...prev,
+              generalError: responseData.message,
+            };
+          });
+        } else {
+          // Fallback for unexpected error formats
+          setErrors((prev) => ({
+            ...prev,
+            generalError: "An unexpected error occurred. Please try again.",
+          }));
         }
 
-        // clear the form fields after successful submission and reset errors
-        resetInputs();
-        resetErrors();
-      } catch (error) {
-        console.error("error:", error);
-        // throw new Error("Network error occurred while submitting the form.");
-      } finally {
-        // Reset the submitting state after the request is complete
-        setIsSubmitting(false);
+        // Stop execution if there was a backend error
+        return;
       }
+
+      // Clear the form fields after successful submission and reset errors
+      resetInputs();
+      resetErrors();
+    } catch (error) {
+      // This catch block handles network errors (e.g., server unreachable, CORS issues)
+      console.error("Network error:", error);
+      setErrors((prev) => ({
+        ...prev,
+        generalError:
+          "Network error: Could not connect to the server. Please check your internet connection.",
+      }));
+    } finally {
+      // Reset the submitting state after the request is complete, regardless of success or failure
+      setIsSubmitting(false);
     }
   };
 
   // Function to handle blur on the confirm password field
   const handleConfirmPasswordBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    const doesntMatch = event.target.value !== passwordInput;
+    // Only validate on blur if both password fields have content
+    if (passwordInput && event.target.value) {
+      const doesntMatch = event.target.value !== passwordInput;
 
-    setErrors((prev) => {
-      return {
-        ...prev,
-        confirmPasswordInputError: doesntMatch ? "Passwords do not match." : "",
-      };
-    });
+      setErrors((prev) => {
+        return {
+          ...prev,
+          confirmPasswordInputError: doesntMatch ? "Passwords do not match." : "",
+        };
+      });
+    }
   };
 
   return (
