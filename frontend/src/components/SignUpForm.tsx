@@ -189,7 +189,7 @@ const SignUpForm = () => {
       resetErrors();
 
       // redirect to the profile page
-      router.push("/profile");
+      router.push(`/profile/${responseData.user.id}`);
     } catch (error) {
       // this catch block handles network errors (e.g., server unreachable, CORS issues)
       console.error("Network error:", error);

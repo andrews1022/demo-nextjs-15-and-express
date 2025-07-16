@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 const AppHeader = () => {
-  const { isLoggedIn, user, logout, isLoading } = useAuth();
+  const { isLoading, isLoggedIn, logout, user } = useAuth();
 
   const router = useRouter();
 
@@ -43,7 +43,7 @@ const AppHeader = () => {
           {isLoggedIn && (
             <>
               <li>
-                <Link href="/profile">Profile</Link>
+                <Link href={`/profile/${user?.id}`}>Profile</Link>
               </li>
               <li>
                 {user && (

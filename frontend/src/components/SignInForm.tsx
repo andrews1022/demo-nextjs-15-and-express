@@ -18,16 +18,16 @@ const SignInForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Access auth context and router
-  const { login, isLoggedIn } = useAuth(); // Also get isLoggedIn to potentially redirect if already logged in
+  const { isLoggedIn, login, user } = useAuth(); // Also get isLoggedIn to potentially redirect if already logged in
   const router = useRouter();
 
   // Redirect if already logged in (optional, but good UX)
   useEffect(() => {
     if (isLoggedIn && !isSubmitting) {
       // Ensure not redirecting while a login attempt is underway
-      router.push("/profile");
+      router.push(`/profile/${user?.id}`);
     }
-  }, [isLoggedIn, isSubmitting, router]);
+  }, [isLoggedIn, isSubmitting, router, user?.id]);
 
   useEffect(() => {
     // Disable the button if any input is empty
@@ -99,7 +99,7 @@ const SignInForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:4000/api/auth/login", {
+      const response = await fetch("http://localhost:4000/api/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -141,7 +141,7 @@ const SignInForm = () => {
       resetErrors();
 
       // Redirect to the profile page
-      router.push("/profile");
+      router.push(`/profile/${user?.id}`);
     } catch (error) {
       console.error("Network error during login:", error);
 

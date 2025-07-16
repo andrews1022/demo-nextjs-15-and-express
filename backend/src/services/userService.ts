@@ -22,11 +22,6 @@ export type AuthResponse = {
 };
 
 export class UserService {
-  // helper method for password verification (e.g., during login)
-  async verifyPassword(plainTextPassword: string, hashedPasswordFromDb: string): Promise<boolean> {
-    return bcrypt.compare(plainTextPassword, hashedPasswordFromDb);
-  }
-
   // helper method to find a user by email (useful for both login and other checks)
   async findUserByEmail(email: string): Promise<User | undefined> {
     const [result] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
@@ -88,7 +83,7 @@ export class UserService {
         throw new BadRequestError("Invalid credentials.");
       }
 
-      const isPasswordValid = await this.verifyPassword(plainTextPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(plainTextPassword, user.password);
 
       if (!isPasswordValid) {
         // use BadRequestError for "invalid credentials"
@@ -113,7 +108,8 @@ export class UserService {
     }
   }
 
-  // method to get a user by ID for profile page, without password
+  // method to get a user by ID
+  // return the user data without their password
   async getUserById(userId: string): Promise<Omit<User, "password"> | undefined> {
     const [result] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
 

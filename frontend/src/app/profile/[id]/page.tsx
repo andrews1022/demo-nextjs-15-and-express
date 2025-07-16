@@ -15,7 +15,7 @@ interface UserProfile {
 }
 
 const ProfilePage = () => {
-  const { user, token, isLoggedIn, isLoading, logout } = useAuth();
+  const { isLoading, isLoggedIn, logout, token, user } = useAuth();
 
   const router = useRouter();
 
@@ -36,51 +36,53 @@ const ProfilePage = () => {
     }
 
     // if logged in, fetch profile data from backend
-    const fetchProfile = async () => {
+    const fetchUserData = async () => {
       setIsFetchingProfile(true);
       setError(null);
 
-      try {
-        const response = await fetch("http://localhost:4000/api/auth/me", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Send the JWT in the Authorization header
-          },
-        });
+      if (user && token) {
+        try {
+          const response = await fetch(`http://localhost:4000/api/users/${user.id}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Send the JWT in the Authorization header
+            },
+          });
 
-        if (!response.ok) {
-          // if the token is invalid or expired, the backend will return 401/403
-          // In such cases, log the user out on the frontend
-          if (response.status === 401 || response.status === 403) {
-            console.error("Token invalid or expired, logging out...");
+          if (!response.ok) {
+            // if the token is invalid or expired, the backend will return 401/403
+            // In such cases, log the user out on the frontend
+            if (response.status === 401 || response.status === 403) {
+              console.error("Token invalid or expired, logging out...");
 
-            // log out from context and then redirect to login
-            logout();
-            router.push("/sign-in");
+              // log out from context and then redirect to login
+              logout();
+              router.push("/sign-in");
 
-            return;
+              return;
+            }
+
+            const errorData = await response.json();
+
+            throw new Error(errorData.message || "Failed to fetch profile data.");
           }
 
-          const errorData = await response.json();
+          const data: UserProfile = await response.json();
 
-          throw new Error(errorData.message || "Failed to fetch profile data.");
+          setProfileData(data);
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+
+          setError((error as Error).message || "Could not load profile data.");
+        } finally {
+          setIsFetchingProfile(false);
         }
-
-        const data: UserProfile = await response.json();
-
-        setProfileData(data);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-
-        setError((error as Error).message || "Could not load profile data.");
-      } finally {
-        setIsFetchingProfile(false);
       }
     };
 
-    fetchProfile();
-  }, [isLoggedIn, isLoading, token, router, logout]);
+    fetchUserData();
+  }, [isLoggedIn, isLoading, token, router, logout, user]);
 
   if (isLoading || isFetchingProfile) {
     return <div>Loading profile...</div>;
