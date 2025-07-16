@@ -1,6 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/hooks/useAuth";
 
 const AppHeader = () => {
+  const { isLoggedIn, user, logout, isLoading } = useAuth();
+
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // log out from context and then redirect to login
+    logout();
+    router.push("/sign-in");
+  };
+
+  // don't render anything until the initial auth state is loaded
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <header>
       <nav>
@@ -9,19 +29,43 @@ const AppHeader = () => {
             <Link href="/">Home</Link>
           </li>
 
-          {/* when not signed in */}
-          <li>
-            <Link href="/sign-in">Sign In</Link>
-          </li>
+          {!isLoggedIn && (
+            <>
+              <li>
+                <Link href="/sign-in">Sign In</Link>
+              </li>
+              <li>
+                <Link href="/sign-up">Sign Up</Link>
+              </li>
+            </>
+          )}
 
-          <li>
-            <Link href="/sign-up">Sign Up</Link>
-          </li>
-
-          {/* when signed in */}
-          <li>
-            <Link href="/profile">Profile</Link>
-          </li>
+          {isLoggedIn && (
+            <>
+              <li>
+                <Link href="/profile">Profile</Link>
+              </li>
+              <li>
+                {user && (
+                  <span style={{ fontWeight: "bold", marginRight: "10px" }}>
+                    Hello, {user.name}!
+                  </span>
+                )}
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    background: "none",
+                    border: "1px solid #666",
+                    padding: "5px 10px",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Logout
+                </button>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
     </header>

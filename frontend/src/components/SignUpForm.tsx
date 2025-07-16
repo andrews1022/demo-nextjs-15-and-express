@@ -1,22 +1,37 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
+import { useAuth } from "@/hooks/useAuth";
+
 const SignUpForm = () => {
-  // State for form input values
+  // state for form input values
   const [nameInput, setNameInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
 
-  // State for button disabled status
+  // state for button disabled status
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
-  // State for form submission
+  // state for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State for validation errors
+  // access auth context and router
+  const { login } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // disable the button if any input is empty, or if passwords do not match
+    const isAnyInputEmpty = !nameInput || !emailInput || !passwordInput || !confirmPasswordInput;
+    const doPasswordsMatch = passwordInput === confirmPasswordInput;
+
+    setIsButtonDisabled(isAnyInputEmpty || !doPasswordsMatch);
+  }, [nameInput, emailInput, passwordInput, confirmPasswordInput]);
+
+  // state for validation errors
   const [errors, setErrors] = useState({
     nameInputError: "",
     emailInputError: "",
@@ -24,14 +39,6 @@ const SignUpForm = () => {
     confirmPasswordInputError: "",
     generalError: "",
   });
-
-  useEffect(() => {
-    // Disable the button if any input is empty, or if passwords do not match
-    const isAnyInputEmpty = !nameInput || !emailInput || !passwordInput || !confirmPasswordInput;
-    const doPasswordsMatch = passwordInput === confirmPasswordInput;
-
-    setIsButtonDisabled(isAnyInputEmpty || !doPasswordsMatch);
-  }, [nameInput, emailInput, passwordInput, confirmPasswordInput]);
 
   const resetInputs = () => {
     setNameInput("");
@@ -51,9 +58,11 @@ const SignUpForm = () => {
   };
 
   const handleInputValidation = () => {
-    let isValid = true; // Flag to track overall form validity
+    // flag to track overall form validity
+    let isValid = true;
+
     const newErrors = {
-      // Initialize newErrors based on current state
+      // initialize newErrors based on current state
       nameInputError: "",
       emailInputError: "",
       passwordInputError: "",
@@ -100,25 +109,28 @@ const SignUpForm = () => {
     return isValid;
   };
 
-  // Function to handle form submission
+  // function to handle form submission
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // Reset errors at the start of each submission attempt
+    // reset errors at the start of each submission attempt
     resetErrors();
 
     const isValid = handleInputValidation();
 
     if (!isValid) {
       // If client-side validation fails, stop here
-      setErrors((prev) => ({
-        ...prev,
-        generalError: "Please correct the errors above before submitting.",
-      }));
+      setErrors((prev) => {
+        return {
+          ...prev,
+          generalError: "Please correct the errors above before submitting.",
+        };
+      });
+
       return;
     }
 
-    // Set submitting state to true ONLY if client-side validation passes
+    // set submitting state to true ONLY if client-side validation passes
     setIsSubmitting(true);
 
     try {
@@ -134,14 +146,14 @@ const SignUpForm = () => {
         }),
       });
 
-      // Always parse JSON, even on error
+      // always parse json, even on error
       const responseData = await response.json();
 
       if (!response.ok) {
-        // Backend sent an error response (e.g., 400, 409, 500)
+        // backend sent an error response (e.g., 400, 409, 500)
         console.error("Backend error response:", responseData);
 
-        // Check the error details to update specific input errors
+        // check the error details to update specific input errors
         if (responseData.details && responseData.details.field === "email") {
           setErrors((prev) => {
             return {
@@ -150,7 +162,7 @@ const SignUpForm = () => {
             };
           });
         } else if (responseData.message) {
-          // For other specific messages not tied to a field, or generic bad request
+          // for other specific messages not tied to a field, or generic bad request
           setErrors((prev) => {
             return {
               ...prev,
@@ -158,37 +170,46 @@ const SignUpForm = () => {
             };
           });
         } else {
-          // Fallback for unexpected error formats
+          // fallback for unexpected error formats
           setErrors((prev) => ({
             ...prev,
             generalError: "An unexpected error occurred. Please try again.",
           }));
         }
 
-        // Stop execution if there was a backend error
+        // stop execution if there was a backend error
         return;
       }
 
-      // Clear the form fields after successful submission and reset errors
+      // call the login function from AuthContext to update global state and store token
+      login(responseData.user, responseData.token);
+
+      // clear the form fields after successful submission and reset errors
       resetInputs();
       resetErrors();
+
+      // redirect to the profile page
+      router.push("/profile");
     } catch (error) {
-      // This catch block handles network errors (e.g., server unreachable, CORS issues)
+      // this catch block handles network errors (e.g., server unreachable, CORS issues)
       console.error("Network error:", error);
-      setErrors((prev) => ({
-        ...prev,
-        generalError:
-          "Network error: Could not connect to the server. Please check your internet connection.",
-      }));
+
+      setErrors((prev) => {
+        return {
+          ...prev,
+          generalError:
+            "Network error: Could not connect to the server. Please check your internet connection.",
+        };
+      });
     } finally {
-      // Reset the submitting state after the request is complete, regardless of success or failure
+      // reset the submitting state after the request is complete, regardless of success or failure
       setIsSubmitting(false);
     }
   };
 
-  // Function to handle blur on the confirm password field
+  // function to handle blur on the confirm password field
   const handleConfirmPasswordBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    // Only validate on blur if both password fields have content
+    // only validate on blur if both password fields have content
     if (passwordInput && event.target.value) {
       const doesntMatch = event.target.value !== passwordInput;
 
