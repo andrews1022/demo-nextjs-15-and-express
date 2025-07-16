@@ -296,7 +296,11 @@ const SignUpForm = () => {
         )}
       </div>
 
-      <button disabled={isButtonDisabled || isSubmitting} type="submit">
+      <button
+        disabled={isButtonDisabled || isSubmitting}
+        type="submit"
+        style={{ padding: "0.125rem 0.75rem", cursor: "pointer" }}
+      >
         {isSubmitting ? "Loading..." : "Sign Up"}
       </button>
 
