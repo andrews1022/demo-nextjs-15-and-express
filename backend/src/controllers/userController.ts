@@ -121,27 +121,4 @@ export class UserController {
       next(error);
     }
   }
-
-  // Returns the authenticated user's profile data
-  // This is a convenient endpoint for the frontend to check auth status
-  async getAuthenticatedUser(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // The user ID is already attached to the request by the authenticateToken middleware
-      const userId = (req as any).user?.id;
-
-      const user = await userService.getUserById(userId);
-
-      if (!user) {
-        throw new NotFoundError("User not found.");
-      }
-
-      res.status(200).json({
-        data: {
-          user,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
