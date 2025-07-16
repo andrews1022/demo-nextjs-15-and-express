@@ -15,6 +15,9 @@ userRouter.post("/login", userController.loginUser);
 // Route for user logout
 userRouter.post("/logout", userController.logoutUser);
 
+// Route for getting the current authenticated user's profile
+userRouter.get("/me", authenticateToken, userController.getAuthenticatedUser);
+
 // Route for getting user data by id (protected route)
 userRouter.get("/:id", authenticateToken, userController.getUserById);
 
