@@ -6,13 +6,13 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
 // define a type for the user profile data fetched from the backend
-interface UserProfile {
+type UserProfile = {
   id: string;
   name: string;
   email: string;
   createdAt: string;
   updatedAt: string;
-}
+};
 
 const ProfilePage = () => {
   const { isLoading, isLoggedIn, logout, token, user } = useAuth();
