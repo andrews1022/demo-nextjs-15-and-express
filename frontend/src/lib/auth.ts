@@ -1,21 +1,36 @@
-"use server"; // Indicates that all exported functions here are server actions
-
-// import { cookies } from "next/headers";
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+import type { JWTPayload } from "jose";
 import { redirect } from "next/navigation";
 
-// Define the shape of the user data returned by the backend
+// Define a type for the user data we expect from our backend API
 type UserProfile = {
   id: string;
   name: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
-// Log in a user by making a POST request to the backend
-// This function is used by a server action in a form
+// const secretKey = "secret";
+// const key = new TextEncoder().encode(secretKey);
+
+// export const encrypt = async (payload: JWTPayload): Promise<string> => {
+//   return await new SignJWT(payload)
+//     .setProtectedHeader({ alg: "HS256" })
+//     .setIssuedAt()
+//     .setExpirationTime("10 sec from now")
+//     .sign(key);
+// };
+
+// export const decrypt = async (input: string): Promise<JWTPayload> => {
+//   const { payload } = await jwtVerify(input, key, { algorithms: ["HS256"] });
+
+//   return payload;
+// };
+
+// A server-side login function that handles the request from the Express backend
+// It uses the browser's native fetch which automatically handles cookies
 export async function login(formData: FormData) {
-  // Use FormData to get the input values from the form
   const email = formData.get("email");
   const password = formData.get("password");
 
@@ -23,69 +38,96 @@ export async function login(formData: FormData) {
     throw new Error("Email and password are required.");
   }
 
-  // Make a request to your backend's login endpoint
   const response = await fetch("http://localhost:4000/api/users/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+    }),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Login failed.");
+    throw new Error(errorData.message || "Failed to log in.");
   }
 
-  // The backend sets the HttpOnly cookie automatically, so no need to handle it here
-  const userData = await response.json();
-  // console.log("[auth.ts] userData: ", userData);
-  // userData:  {
-  //   user: {
-  //     id: 'd92dbb41-3919-43ff-80ee-65eb9a0cf4c9',
-  //     name: 'John Doe',
-  //     email: 'johndoe1123@gmail.com',
-  //     createdAt: '2025-07-15T23:30:27.402Z',
-  //     updatedAt: '2025-07-15T23:30:27.402Z'
-  //   }
-  // }
+  // The browser has already received and set the HttpOnly cookie.
+  // There is no need to manually set the cookie here with `cookies().set()`.
 
-  // Redirect the user to their specific dynamic profile page
-  redirect(`/profile/${userData.user.id}`);
+  // Now, redirect the user to a protected page
+  redirect("/profile");
 }
 
-// Log out a user by making a POST request to the backend
+// A server-side logout function that calls the backend to clear the cookie.
 export async function logout() {
-  // Make a request to your backend's logout endpoint
-  await fetch("http://localhost:4000/api/users/logout", {
+  const response = await fetch("http://localhost:4000/api/users/logout", {
     method: "POST",
   });
 
-  // Redirect the user back to the home page
-  redirect("/");
+  if (!response.ok) {
+    throw new Error("Logout failed on the backend.");
+  }
+
+  // The backend's response will clear the cookie
+  // Now, redirect to the login page after a successful logout
+  redirect("/sign-in");
 }
 
-// Get the currently authenticated user's profile from the backend
-// This function will be used by server components (like AppHeader and ProfilePage)
+// export const getSession = async (): Promise<JWTPayload | null> => {
+//   const cookieStore = await cookies();
+//   const session = cookieStore.get("session")?.value;
+
+//   if (!session) {
+//     return null;
+//   }
+
+//   return await decrypt(session);
+// };
+
+// export const updateSession = async (request: NextRequest) => {
+//   const session = request.cookies.get("session")?.value;
+
+//   if (!session) {
+//     return;
+//   }
+
+//   // Refresh the session so it doesn't expire
+//   const parsed = await decrypt(session);
+//   parsed.expires = new Date(Date.now() + 10 * 1000);
+
+//   const res = NextResponse.next();
+
+//   res.cookies.set({
+//     name: "session",
+//     value: await encrypt(parsed),
+//     httpOnly: true,
+//     expires: parsed.expires,
+//   });
+
+//   return res;
+// };
+
+// Returns the authenticated user's profile data from the backend.
+// This is our new way of "getting the session" since we no longer decrypt it here.
 export async function getAuthenticatedUser(): Promise<UserProfile | null> {
+  // Use a try-catch block for clean error handling
   try {
     // The browser automatically sends the HttpOnly cookie with this request
-    const response = await fetch("http://localhost:4000/api/users/me", {
-      method: "GET",
-      // It's important to set 'cache: "no-store"' or 'revalidate: 0' to ensure
-      // the request is not cached and the user's auth status is always fresh
-      cache: "no-store",
-    });
+    const response = await fetch("http://localhost:4000/api/users/me");
 
     if (!response.ok) {
-      // If the response is not ok (e.g., 401 Unauthorized), the user is not authenticated
+      // If the backend returns a non-200 status (e.g., 401 Unauthorized), the user is not authenticated
       return null;
     }
 
-    const user: UserProfile = await response.json();
-    return user;
+    const userData: UserProfile = await response.json();
+    return userData;
   } catch (error) {
-    console.error("Error fetching authenticated user:", error);
+    // Handle network errors or other unexpected issues
+    console.error("Failed to fetch authenticated user:", error);
     return null;
   }
 }
