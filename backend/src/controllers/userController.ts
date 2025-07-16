@@ -34,7 +34,11 @@ export class UserController {
       res.cookie("jwt", token, cookieOptions);
 
       // We no longer need to send the token in the JSON body
-      res.status(201).json({ user });
+      res.status(201).json({
+        data: {
+          user,
+        },
+      });
     } catch (error) {
       // Pass any caught error (including custom HttpErrors from UserService) to the global error handler
       next(error);
@@ -58,7 +62,11 @@ export class UserController {
       res.cookie("jwt", token, cookieOptions);
 
       // We no longer need to send the token in the JSON body
-      res.status(200).json({ user });
+      res.status(200).json({
+        data: {
+          user,
+        },
+      });
     } catch (error) {
       next(error);
     }
@@ -69,7 +77,12 @@ export class UserController {
     try {
       // Clear the cookie. The value doesn't matter, just the name and options.
       res.clearCookie("jwt");
-      res.status(200).json({ message: "Logged out successfully." });
+
+      res.status(200).json({
+        data: {
+          message: "Logged out successfully.",
+        },
+      });
     } catch (error) {
       // Pass the error to the global error handler
       next(error);
@@ -98,7 +111,11 @@ export class UserController {
       }
 
       // Send back the user data without the password
-      res.status(200).json(user);
+      res.status(200).json({
+        data: {
+          user,
+        },
+      });
     } catch (error) {
       // Pass the error to the global error handler
       next(error);
@@ -118,7 +135,11 @@ export class UserController {
         throw new NotFoundError("User not found.");
       }
 
-      res.status(200).json(user);
+      res.status(200).json({
+        data: {
+          user,
+        },
+      });
     } catch (error) {
       next(error);
     }

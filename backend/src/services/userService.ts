@@ -22,13 +22,6 @@ export type AuthResponse = {
 };
 
 export class UserService {
-  // helper method to find a user by email (useful for both login and other checks)
-  async findUserByEmail(email: string): Promise<User | undefined> {
-    const [result] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
-
-    return result;
-  }
-
   // method to create a new user (and log them in automatically)
   async registerUser(userData: CreateUserInput): Promise<AuthResponse> {
     const { password, ...restUserData } = userData;
@@ -76,7 +69,8 @@ export class UserService {
   // method to log in an existing user
   async loginUser(email: string, plainTextPassword: string): Promise<AuthResponse> {
     try {
-      const user = await this.findUserByEmail(email);
+      // find the user by email
+      const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
 
       if (!user) {
         // use BadRequestError for "invalid credentials" to avoid leaking whether email exists
