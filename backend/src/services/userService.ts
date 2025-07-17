@@ -3,13 +3,8 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/drizzle/db";
 import { usersTable } from "@/drizzle/schema/users";
-import {
-  BadRequestError,
-  ConflictError,
-  HttpError,
-  InternalServerError,
-} from "@/errors/customErrors";
-import { generateToken } from "@/utils/jwt";
+import { BadRequestError, ConflictError, HttpError, InternalServerError } from "@/lib/customErrors";
+import { generateToken } from "@/lib/jwt";
 import type { CreateUserInput, User } from "@/types/users";
 
 const BCRYPT_SALT_ROUNDS = 10;

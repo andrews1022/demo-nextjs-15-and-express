@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { config } from "@/config";
-import { BadRequestError, ConflictError, NotFoundError } from "@/errors/customErrors";
+import { BadRequestError, NotFoundError } from "@/lib/customErrors";
 import { UserService } from "@/services/userService";
 import type { CreateUserInput } from "@/types/users";
 

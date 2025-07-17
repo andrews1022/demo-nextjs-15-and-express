@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
-import { UnauthorizedError, ForbiddenError } from "@/errors/customErrors";
-import { verifyToken } from "@/utils/jwt";
+import { UnauthorizedError, ForbiddenError } from "@/lib/customErrors";
+import { verifyToken } from "@/lib/jwt";
 
 // augment the express request type to include a 'user' property
 // this allows us to attach user information to the request object

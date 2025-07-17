@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 import { config } from "@/config";
-import { HttpError, InternalServerError } from "@/errors/customErrors";
+import { HttpError, InternalServerError } from "@/lib/customErrors";
 
 // Global error handling middleware
 // It must have 4 parameters to be recognized as an error handler by Express
