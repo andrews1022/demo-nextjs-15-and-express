@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express";
-import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -14,7 +13,6 @@ app.use(helmet()); // security headers
 app.use(cors()); // allow cross-origin requests (from client, server ok)
 app.use(morgan("dev")); // request logger
 app.use(express.json()); // parse JSON bodies
-app.use(cookieParser()); // parse cookies (for httpOnly cookies)
 
 // Basic root API route
 app.get("/api", (req: Request, res: Response) => {
