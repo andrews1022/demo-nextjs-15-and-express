@@ -12,9 +12,6 @@ userRouter.post("/register", userController.registerUser);
 // Route for user login
 userRouter.post("/login", userController.loginUser);
 
-// Route for user logout
-userRouter.post("/logout", userController.logoutUser);
-
 // Route for getting user data by id (protected route)
 userRouter.get("/:id", authenticateToken, userController.getUserById);
 
