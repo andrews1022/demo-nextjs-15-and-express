@@ -11,7 +11,12 @@ const app = express();
 
 // --- Global Middleware ---
 app.use(helmet()); // security headers
-app.use(cors()); // allow cross-origin requests (from client, server ok)
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+); // allow cross-origin requests (from client, server ok)
 app.use(morgan("dev")); // request logger
 app.use(express.json()); // parse JSON bodies
 app.use(cookieParser()); // parse cookies (for httpOnly cookies)

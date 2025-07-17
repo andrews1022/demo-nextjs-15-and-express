@@ -44,7 +44,10 @@ export class UserService {
       // generate jwt for the newly registered user
       const token = generateToken({ userId: userWithoutPassword.id });
 
-      return { user: userWithoutPassword, token };
+      return {
+        user: userWithoutPassword,
+        token,
+      };
     } catch (error: any) {
       console.log("register user error", JSON.stringify(error, null, 2));
 
@@ -85,7 +88,10 @@ export class UserService {
       // generate jwt for the authenticated user
       const token = generateToken({ userId: userWithoutPassword.id });
 
-      return { user: userWithoutPassword, token };
+      return {
+        user: userWithoutPassword,
+        token,
+      };
     } catch (error: any) {
       // re-throw HttpErrors directly
       if (error instanceof HttpError) {
