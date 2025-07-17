@@ -19,8 +19,14 @@ export class UserController {
         throw new BadRequestError("All fields (name, email, password) are required.");
       }
 
-      const newUser = await userService.registerUser({ name, email, password });
-      res.status(201).json(newUser);
+      const { token, user } = await userService.registerUser({ name, email, password });
+
+      res.status(201).json({
+        data: {
+          token,
+          user,
+        },
+      });
     } catch (error) {
       // Pass any caught error (including custom HttpErrors from UserService) to the global error handler
       next(error);
@@ -39,10 +45,15 @@ export class UserController {
       }
 
       // Call the UserService to authenticate the user
-      const authResponse = await userService.loginUser(email, password);
+      const { token, user } = await userService.loginUser(email, password);
 
       // Send back the user data and JWT
-      res.status(200).json(authResponse);
+      res.status(200).json({
+        data: {
+          token,
+          user,
+        },
+      });
     } catch (error) {
       // Pass the error to the global error handler
       next(error);
