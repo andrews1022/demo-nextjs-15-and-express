@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import type { JWTPayload } from "jose";
-import LogoutButton from "./LogoutButton";
+import LogoutButton from "@/components/LogoutButton";
 
 // You must set this to your backend JWT secret
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -38,6 +38,7 @@ const AppHeader = async () => {
           <li>
             <Link href="/">Home</Link>
           </li>
+
           {!user && (
             <>
               <li>
@@ -48,6 +49,7 @@ const AppHeader = async () => {
               </li>
             </>
           )}
+
           {user && (
             <>
               <li>
