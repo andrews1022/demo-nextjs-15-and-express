@@ -1,10 +1,19 @@
 import { NextFunction, Request, Response } from "express";
 
-import { BadRequestError, NotFoundError } from "@/errors/customErrors";
+import { config } from "@/config";
+import { BadRequestError, ConflictError, NotFoundError } from "@/errors/customErrors";
 import { UserService } from "@/services/userService";
 import type { CreateUserInput } from "@/types/users";
 
 const userService = new UserService();
+
+// Define a common cookie options object
+const cookieOptions = {
+  httpOnly: true, // Prevents client-side JS from accessing the cookie
+  secure: config.nodeEnv === "production", // Use secure in production (HTTPS)
+  sameSite: "strict" as const, // Prevents CSRF attacks
+  maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+};
 
 export class UserController {
   // Handles user registration (POST /api/users/register)
@@ -19,11 +28,14 @@ export class UserController {
         throw new BadRequestError("All fields (name, email, password) are required.");
       }
 
-      const { token, user } = await userService.registerUser({ name, email, password });
+      const { user, token } = await userService.registerUser({ name, email, password });
 
+      // Set the JWT as an HttpOnly cookie
+      res.cookie("jwt", token, cookieOptions);
+
+      // We no longer need to send the token in the JSON body
       res.status(201).json({
         data: {
-          token,
           user,
         },
       });
@@ -44,14 +56,32 @@ export class UserController {
         throw new BadRequestError("Email and password are required.");
       }
 
-      // Call the UserService to authenticate the user
-      const { token, user } = await userService.loginUser(email, password);
+      const { user, token } = await userService.loginUser(email, password);
 
-      // Send back the user data and JWT
+      // Set the JWT as an HttpOnly cookie
+      res.cookie("jwt", token, cookieOptions);
+
+      // We no longer need to send the token in the JSON body
       res.status(200).json({
         data: {
-          token,
           user,
+        },
+      });
+    } catch (error) {
+      // Pass the error to the global error handler
+      next(error);
+    }
+  }
+
+  // Handles user logout by clearing the HttpOnly cookie
+  async logoutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Clear the cookie. The value doesn't matter, just the name and options.
+      res.clearCookie("jwt");
+
+      res.status(200).json({
+        data: {
+          message: "Logged out successfully.",
         },
       });
     } catch (error) {
@@ -64,16 +94,18 @@ export class UserController {
   // This route is protected by the authenticateToken middleware
   async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id } = req.params;
+      // The user ID from the JWT is now available on req.user.id
+      const userIdFromToken = (req as any).user?.id; // will be typed properly in the middleware
+      const userIdFromParams = req.params.id;
 
-      // Validate that userId is provided
-      if (!id) {
-        throw new NotFoundError("User ID not found in request after authentication.");
+      // Ensure the user requesting the profile matches the token's user ID
+      if (userIdFromToken !== userIdFromParams) {
+        throw new BadRequestError("Access to this profile is forbidden.");
       }
 
       // Call the UserService to get the user by ID
       // getUserById already returns user data without password
-      const user = await userService.getUserById(id);
+      const user = await userService.getUserById(userIdFromParams);
 
       if (!user) {
         throw new NotFoundError("User not found.");

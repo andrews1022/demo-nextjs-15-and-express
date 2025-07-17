@@ -18,12 +18,10 @@ declare global {
   }
 }
 
-// middleware to authenticate requests using jwt
-// it expects the jwt in the 'authorization' header as 'Bearer <token>'.
+// middleware to authenticate requests using jwt from an HttpOnly cookie
+// it expects the jwt in the 'jwt' cookie
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers["authorization"];
-  // extract the token --> it should be in the format "Bearer TOKEN"
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies.jwt;
 
   if (!token) {
     // if no token is provided, the user is unauthorized
