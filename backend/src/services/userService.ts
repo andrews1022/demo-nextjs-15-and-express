@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/drizzle/db";
-import { usersTable } from "@/drizzle/schema";
+import { usersTable } from "@/drizzle/schema/users";
 import {
   BadRequestError,
   ConflictError,
