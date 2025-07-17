@@ -5,14 +5,14 @@ import { db } from "@/drizzle/db";
 import { usersTable } from "@/drizzle/schema/users";
 import { BadRequestError, ConflictError, HttpError, InternalServerError } from "@/lib/customErrors";
 import { generateToken } from "@/lib/jwt";
-import type { CreateUserInput, User } from "@/types/users";
+import type { CreateUserInput, DrizzleSelectUser } from "@/types/users";
 
 const BCRYPT_SALT_ROUNDS = 10;
 
 // Define a type for the successful authentication response
 // This is what loginUser and registerUser will return
 export type AuthResponse = {
-  user: Omit<User, "password">; // User data without the password
+  user: Omit<DrizzleSelectUser, "password">; // User data without the password
   token: string;
 };
 
@@ -99,7 +99,7 @@ export class UserService {
 
   // method to get a user by ID
   // return the user data without their password
-  async getUserById(userId: string): Promise<Omit<User, "password"> | undefined> {
+  async getUserById(userId: string): Promise<Omit<DrizzleSelectUser, "password"> | undefined> {
     const [result] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
 
     if (result) {
