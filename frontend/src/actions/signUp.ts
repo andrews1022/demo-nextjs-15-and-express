@@ -63,18 +63,6 @@ export const signUp = async (state: SignUpState, formData: FormData) => {
 
     // 3. Create session
     const registeredUserData = await response.json();
-    // console.log("registeredUserData: ", registeredUserData);
-    // registeredUserData:  {
-    //   data: {
-    //     user: {
-    //       id: 'c80a42c4-7dd4-462a-b0d2-d2b230132669',
-    //       name: 'John Wick',
-    //       email: 'johnwick@gmail.com',
-    //       createdAt: '2025-07-18T00:07:30.014Z',
-    //       updatedAt: '2025-07-18T00:07:30.014Z'
-    //     }
-    //   }
-    // }
 
     await createSession(registeredUserData.data.user.id);
 
