@@ -37,8 +37,6 @@ export const decrypt = async (session: string | undefined = ""): Promise<JWTPayl
 };
 
 export const createSession = async (userId: string): Promise<void> => {
-  // console.log("userId: ", userId);
-  // userId: c80a42c4-7dd4-462a-b0d2-d2b230132669
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day from now
   const session = await encrypt({ userId, expires });
 
@@ -51,21 +49,14 @@ export const createSession = async (userId: string): Promise<void> => {
     expires,
   });
 
-  const path = `/profile/${userId}`;
-  console.log("redirecting to: ", path);
-
   redirect(`/profile/${userId}`);
 };
 
 export const verifySession = async () => {
   const cookieStore = await cookies();
-  const ck = cookieStore.get(cookieHelper.name)?.value;
+  const cookieValue = cookieStore.get(cookieHelper.name)?.value;
 
-  const session = await decrypt(ck);
-
-  // if (!session?.userId) {
-  //   redirect("/sign-in");
-  // }
+  const session = await decrypt(cookieValue);
 
   if (session?.userId) {
     return {

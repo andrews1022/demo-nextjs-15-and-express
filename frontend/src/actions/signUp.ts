@@ -3,7 +3,7 @@
 import z from "zod";
 
 import { SignUpFormSchema } from "@/formSchemas/definitions";
-import { createSession } from "@/auth/session";
+import { createSession } from "@/sesh/session";
 
 type SignUpErrors =
   | {

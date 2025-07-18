@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-import { decrypt } from "@/auth/session";
+import { decrypt } from "@/sesh/session";
 import { cookieHelper } from "@/constants/cookies";
 
 // 1. Specify protected and public routes
