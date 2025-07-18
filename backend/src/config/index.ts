@@ -6,8 +6,10 @@ dotenv.config();
 
 export const config: Config = {
   dbUrl: process.env.DB_URL || "",
+  jwtAlg: process.env.JWT_ALG || "HS256", // Default to HS256 if not set
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1d", // Default to 1 day if not set
+  jwtName: process.env.JWT_NAME || "jwt",
   jwtSecret: process.env.JWT_SECRET || "",
-  jwtExpiresIn: Number(process.env.JWT_EXPIRES_IN) || 86400, // 86400 is 1 day in seconds
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT) || 4000,
 };

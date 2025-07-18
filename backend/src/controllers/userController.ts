@@ -31,7 +31,7 @@ export class UserController {
       const { user, token } = await userService.signUpUser({ name, email, password });
 
       // Set the JWT as an HttpOnly cookie
-      res.cookie("jwt", token, cookieOptions);
+      res.cookie(config.jwtName, token, cookieOptions);
 
       // We no longer need to send the token in the JSON body
       res.status(201).json({
@@ -59,7 +59,7 @@ export class UserController {
       const { user, token } = await userService.signInUser(email, password);
 
       // Set the JWT as an HttpOnly cookie
-      res.cookie("jwt", token, cookieOptions);
+      res.cookie(config.jwtName, token, cookieOptions);
 
       // We no longer need to send the token in the JSON body
       res.status(200).json({
@@ -77,7 +77,7 @@ export class UserController {
   async signOutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Clear the cookie. The value doesn't matter, just the name and options.
-      res.clearCookie("jwt");
+      res.clearCookie(config.jwtName);
 
       res.status(200).json({
         data: {

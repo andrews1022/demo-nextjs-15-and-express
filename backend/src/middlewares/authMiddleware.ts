@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 
+import { config } from "@/config";
 import { UnauthorizedError, ForbiddenError } from "@/lib/customErrors";
 import { verifyToken } from "@/lib/jwt";
 
@@ -20,8 +21,8 @@ declare global {
 
 // middleware to authenticate requests using jwt from an HttpOnly cookie
 // it expects the jwt in the 'jwt' cookie
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.cookies.jwt;
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.cookies[config.jwtName];
 
   if (!token) {
     // if no token is provided, the user is unauthorized
@@ -30,10 +31,13 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
   try {
     // verify the token using your utility function
-    const decodedPayload = verifyToken(token);
+    const decodedPayload = await verifyToken(token);
 
     // attach the decoded user information to the request object
     // this makes the user's id available in subsequent route handlers
+    if (typeof decodedPayload.userId !== "string") {
+      throw new ForbiddenError("Invalid token payload: userId is missing or not a string.");
+    }
     req.user = { id: decodedPayload.userId };
 
     // proceed to the next middleware or route handler

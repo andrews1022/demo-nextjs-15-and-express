@@ -1,7 +1,9 @@
 export type Config = {
   dbUrl: string;
+  jwtAlg: string;
+  jwtExpiresIn: string;
+  jwtName: string;
   jwtSecret: string;
-  jwtExpiresIn: number;
   nodeEnv: string;
   port: number;
 };

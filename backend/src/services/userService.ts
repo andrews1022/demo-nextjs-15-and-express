@@ -42,7 +42,7 @@ export class UserService {
       const { password: _, ...userWithoutPassword } = insertedUser;
 
       // generate jwt for the newly registered user
-      const token = generateToken({ userId: userWithoutPassword.id });
+      const token = await generateToken({ userId: userWithoutPassword.id });
 
       return {
         user: userWithoutPassword,
@@ -86,7 +86,7 @@ export class UserService {
       const { password: _, ...userWithoutPassword } = user;
 
       // generate jwt for the authenticated user
-      const token = generateToken({ userId: userWithoutPassword.id });
+      const token = await generateToken({ userId: userWithoutPassword.id });
 
       return {
         user: userWithoutPassword,

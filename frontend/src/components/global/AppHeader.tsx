@@ -10,7 +10,7 @@ import { verifySession } from "@/auth/session";
 
 // const getUserFromCookie = async (): Promise<JWTPayload | null> => {
 //   const cookieStore = await cookies();
-//   const token = cookieStore.get("jwt");
+//   const token = cookieStore.get(cookieHelper.name);
 
 //   if (!token || !JWT_SECRET) {
 //     return null;

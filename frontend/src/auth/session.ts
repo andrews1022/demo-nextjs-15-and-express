@@ -5,20 +5,9 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { JWTPayload } from "jose";
 
-const key = new TextEncoder().encode(process.env.JWT_SECRET);
+import { cookieHelper } from "@/constants/cookies";
 
-// helper object to hold cookie options
-const helper = {
-  alg: "HS256",
-  duration: 24 * 60 * 60 * 1000, // 1 day
-  name: "session",
-  options: {
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: true,
-  },
-};
+const key = new TextEncoder().encode(process.env.JWT_SECRET);
 
 type SessionPayload = {
   userId: string | number;
@@ -27,16 +16,16 @@ type SessionPayload = {
 
 export const encrypt = async (payload: SessionPayload): Promise<string> => {
   return new SignJWT(payload)
-    .setProtectedHeader({ alg: helper.alg })
+    .setProtectedHeader({ alg: cookieHelper.alg })
     .setIssuedAt()
-    .setExpirationTime(86400) // 1 day in seconds
+    .setExpirationTime(cookieHelper.duration)
     .sign(key);
 };
 
 export const decrypt = async (session: string | undefined = ""): Promise<JWTPayload | null> => {
   try {
     const { payload } = await jwtVerify(session, key, {
-      algorithms: [helper.alg],
+      algorithms: [cookieHelper.alg],
     });
     return payload;
   } catch (error) {
@@ -49,12 +38,12 @@ export const decrypt = async (session: string | undefined = ""): Promise<JWTPayl
 
 export const createSession = async (userId: string): Promise<void> => {
   // console.log("userId: ", userId);
-  // userId:  c80a42c4-7dd4-462a-b0d2-d2b230132669
-  const expires = new Date(Date.now() + helper.duration);
+  // userId: c80a42c4-7dd4-462a-b0d2-d2b230132669
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day from now
   const session = await encrypt({ userId, expires });
 
   const cookieStore = await cookies();
-  cookieStore.set(helper.name, session, {
+  cookieStore.set(cookieHelper.name, session, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
@@ -62,12 +51,15 @@ export const createSession = async (userId: string): Promise<void> => {
     expires,
   });
 
+  const path = `/profile/${userId}`;
+  console.log("redirecting to: ", path);
+
   redirect(`/profile/${userId}`);
 };
 
 export const verifySession = async () => {
   const cookieStore = await cookies();
-  const ck = cookieStore.get(helper.name)?.value;
+  const ck = cookieStore.get(cookieHelper.name)?.value;
 
   const session = await decrypt(ck);
 
@@ -84,7 +76,7 @@ export const verifySession = async () => {
 
 export const updateSession = async (): Promise<null | undefined> => {
   const cookieStore = await cookies();
-  const session = cookieStore.get("session")?.value;
+  const session = cookieStore.get(cookieHelper.name)?.value;
   const payload = await decrypt(session);
 
   if (!session || !payload) {
@@ -92,7 +84,7 @@ export const updateSession = async (): Promise<null | undefined> => {
   }
 
   const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  cookieStore.set("session", session, {
+  cookieStore.set(cookieHelper.name, session, {
     httpOnly: true,
     secure: true,
     expires: expires,
@@ -103,7 +95,7 @@ export const updateSession = async (): Promise<null | undefined> => {
 
 export const deleteSession = async (): Promise<void> => {
   const cookieStore = await cookies();
-  cookieStore.delete(helper.name);
+  cookieStore.delete(cookieHelper.name);
 
   redirect("/sign-in");
 };

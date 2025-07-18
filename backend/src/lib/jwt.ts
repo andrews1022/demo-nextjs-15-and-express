@@ -1,27 +1,27 @@
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
+import type { JWTPayload } from "jose";
 
 import { config } from "@/config";
 
-type JwtPayload = {
-  userId: string;
-  // You can add more non-sensitive user data here if needed,
-  // e.g., role: string, email: string (if needed for quick access without DB lookup)
+const secretKey = new TextEncoder().encode(config.jwtSecret);
+
+// Generates a JSON Web Token (JWT) using jose
+export const generateToken = async (payload: JWTPayload): Promise<string> => {
+  return await new SignJWT(payload)
+    .setProtectedHeader({ alg: config.jwtAlg })
+    .setIssuedAt()
+    .setExpirationTime(config.jwtExpiresIn)
+    .sign(secretKey);
 };
 
-// Generates a JSON Web Token (JWT)
-export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, config.jwtSecret, {
-    expiresIn: config.jwtExpiresIn,
-  });
-};
-
-// Verifies a JSON Web Token (JWT)
-export const verifyToken = (token: string): JwtPayload => {
+// Verifies a JSON Web Token (JWT) using jose
+export const verifyToken = async (token: string): Promise<JWTPayload> => {
   try {
-    const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
-    return decoded;
+    const { payload } = await jwtVerify(token, secretKey, {
+      algorithms: [config.jwtAlg],
+    });
+    return payload;
   } catch (error) {
-    // Handle specific JWT errors if needed (e.g., TokenExpiredError, JsonWebTokenError)
     console.error("JWT Verification Error:", error);
     throw new Error("Invalid or expired token.");
   }
