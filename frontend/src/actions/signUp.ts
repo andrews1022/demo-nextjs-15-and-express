@@ -15,15 +15,18 @@ type SignUpState =
   | {
       errors: {
         errors: string[];
-        properties?:
-          | {
-              name?: SignUpErrors;
-              email?: SignUpErrors;
-              password?: SignUpErrors;
-              confirmPassword?: SignUpErrors;
-            }
-          | undefined;
+        properties?: {
+          name?: SignUpErrors;
+          email?: SignUpErrors;
+          password?: SignUpErrors;
+          confirmPassword?: SignUpErrors;
+        };
       };
+      userId?: undefined;
+    }
+  | {
+      userId: string;
+      errors?: undefined;
     }
   | undefined;
 
@@ -74,6 +77,10 @@ export const signUp = async (state: SignUpState, formData: FormData) => {
     // }
 
     await createSession(registeredUserData.data.user.id);
+
+    return {
+      userId: registeredUserData.data.user.id,
+    };
   } catch (error) {
     console.error("Error signing up:", error);
   }

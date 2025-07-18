@@ -1,11 +1,19 @@
 "use client";
 
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect } from "react";
 
 import { signUp } from "@/actions/signUp";
 
 const SignUpForm = () => {
+  const router = useRouter();
   const [state, action, pending] = useActionState(signUp, undefined);
+
+  useEffect(() => {
+    if (state?.userId) {
+      router.push(`/profile/${state.userId}`);
+    }
+  }, [state, router]);
 
   return (
     <form

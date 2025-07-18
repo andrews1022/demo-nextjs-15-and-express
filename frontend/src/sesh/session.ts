@@ -49,7 +49,7 @@ export const createSession = async (userId: string): Promise<void> => {
     expires,
   });
 
-  redirect(`/profile/${userId}`);
+  // redirect(`/profile/${userId}`);
 };
 
 export const verifySession = async () => {
