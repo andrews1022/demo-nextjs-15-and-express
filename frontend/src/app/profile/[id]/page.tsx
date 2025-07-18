@@ -16,6 +16,7 @@ type ProfileResponseData = {
 const getUserData = async (id: string): Promise<ProfileResponseData | null> => {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
+  // console.log("cookieHeader: ", cookieHeader);
 
   try {
     const response = await fetch(`http://localhost:4000/api/users/${id}`, {
@@ -33,7 +34,7 @@ const getUserData = async (id: string): Promise<ProfileResponseData | null> => {
     }
 
     const data = await response.json();
-    // console.log("data: ", data);
+    console.log("data: ", data);
 
     return data;
   } catch (error) {
@@ -54,17 +55,17 @@ type ProfilePageProps = {
 
 const ProfilePage = async ({ params }: ProfilePageProps) => {
   const { id } = await params;
-  const user = await getUserData(id);
+  // const user = await getUserData(id);
 
   return (
     <div>
       <h1>User Profile</h1>
       {/* {error && <div style={{ color: "red" }}>{error}</div>} */}
-      {user && user.data.user && (
+      {/* {user && user.data.user && (
         <div style={{ marginBottom: "16px" }}>
           <strong>Name:</strong> {user.data.user.name}
         </div>
-      )}
+      )} */}
       <CreatePostForm />
     </div>
   );

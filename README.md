@@ -28,7 +28,7 @@ A simple full-stack application using Next.js and Express.js. Using mock data fr
 
 1. Frontend Action: The user fills out the registration form (email, password) on your Next.js app and submits it.
 
-2. API Request (Frontend to Backend): Next.js sends an API request (e.g., POST /api/auth/register) to your Express.js backend with the user's email and password in the request body.
+2. API Request (Frontend to Backend): Next.js sends an API request (e.g., POST /api/users/sign-up) to your Express.js backend with the user's email and password in the request body.
 
 3. Input Validation (Backend): The Express.js backend receives the request. This is where you'll use Zod to validate that the email is in a correct format and the password meets your minimum requirements (length, complexity).
 
@@ -47,7 +47,7 @@ A simple full-stack application using Next.js and Express.js. Using mock data fr
 
 1. Frontend Action: The user fills out the login form (email, password) on your Next.js app and submits it.
 
-2. API Request (Frontend to Backend): Next.js sends an API request (e.g., POST /api/auth/login) to your Express.js backend with the user's email and password.
+2. API Request (Frontend to Backend): Next.js sends an API request (e.g., POST /api/users/sign-in) to your Express.js backend with the user's email and password.
 
 3. Input Validation (Backend): The Express.js backend validates the input using Zod.
 

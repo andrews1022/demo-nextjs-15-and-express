@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { signIn } from "@/actions/signIn";
 
 type LoginResponseData = {
   data: {
@@ -40,7 +41,7 @@ const SignInForm = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/login", {
+      const response = await fetch("http://localhost:4000/api/users/sign-in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +79,7 @@ const SignInForm = () => {
 
   return (
     <form
-      onSubmit={handleOnSubmit}
+      // action={signIn}
       style={{
         display: "flex",
         flexDirection: "column",

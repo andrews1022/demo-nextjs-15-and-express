@@ -10,7 +10,9 @@ type JwtPayload = {
 
 // Generates a JSON Web Token (JWT)
 export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn });
+  return jwt.sign(payload, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn,
+  });
 };
 
 // Verifies a JSON Web Token (JWT)

@@ -16,9 +16,9 @@ const cookieOptions = {
 };
 
 export class UserController {
-  // Handles user registration (POST /api/users/register)
+  // Handles user registration (POST /api/users/sign-up)
   // Creates a new user and returns the user data along with a JWT
-  async registerUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signUpUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, email, password } = req.body as CreateUserInput;
 
@@ -28,7 +28,7 @@ export class UserController {
         throw new BadRequestError("All fields (name, email, password) are required.");
       }
 
-      const { user, token } = await userService.registerUser({ name, email, password });
+      const { user, token } = await userService.signUpUser({ name, email, password });
 
       // Set the JWT as an HttpOnly cookie
       res.cookie("jwt", token, cookieOptions);
@@ -45,9 +45,9 @@ export class UserController {
     }
   }
 
-  // Handles user login (POST /api/users/login)
+  // Handles user login (POST /api/users/sign-in)
   // Authenticates user and returns a JWT
-  async loginUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signInUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { email, password } = req.body;
 
@@ -56,7 +56,7 @@ export class UserController {
         throw new BadRequestError("Email and password are required.");
       }
 
-      const { user, token } = await userService.loginUser(email, password);
+      const { user, token } = await userService.signInUser(email, password);
 
       // Set the JWT as an HttpOnly cookie
       res.cookie("jwt", token, cookieOptions);
@@ -74,7 +74,7 @@ export class UserController {
   }
 
   // Handles user logout by clearing the HttpOnly cookie
-  async logoutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signOutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Clear the cookie. The value doesn't matter, just the name and options.
       res.clearCookie("jwt");

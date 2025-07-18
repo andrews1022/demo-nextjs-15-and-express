@@ -1,42 +1,49 @@
 "use client";
 
+import { deleteSession } from "@/auth/session";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 
 const LogoutButton = () => {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // const [state, action, pending] = useActionState(deleteSession, undefined);
 
-  const handleLogout = async () => {
-    setLoading(true);
-    setError(null);
+  // const router = useRouter();
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
 
-    try {
-      const response = await fetch("http://localhost:4000/api/users/logout", {
-        method: "POST",
-        credentials: "include", // ensures cookies are sent with the request
-      });
+  // const handleLogout = async () => {
+  //   setLoading(true);
+  //   setError(null);
 
-      if (response.ok) {
-        router.push("/");
-      } else {
-        setError("Logout failed.");
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Logout error:", error.message);
-      }
-      setError("Logout failed.");
-    } finally {
-      setLoading(false);
-    }
+  //   try {
+  //     const response = await fetch("http://localhost:4000/api/users/logout", {
+  //       method: "POST",
+  //       credentials: "include", // ensures cookies are sent with the request
+  //     });
+
+  //     if (response.ok) {
+  //       router.push("/");
+  //     } else {
+  //       setError("Logout failed.");
+  //     }
+  //   } catch (error) {
+  //     if (error instanceof Error) {
+  //       console.error("Logout error:", error.message);
+  //     }
+  //     setError("Logout failed.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleOnClick = async () => {
+    // await deleteSession();
   };
 
   return (
     <button
-      onClick={handleLogout}
-      disabled={loading}
+      onClick={handleOnClick}
+      // disabled={pending}
       style={{
         background: "none",
         border: "1px solid #666",
@@ -45,8 +52,9 @@ const LogoutButton = () => {
         cursor: "pointer",
       }}
     >
-      {loading ? "Logging out..." : "Logout"}
-      {error && <span style={{ color: "red", marginLeft: "10px" }}>{error}</span>}
+      {/* {pending ? "Logging out..." : "Logout"}
+      {state && <span style={{ color: "red", marginLeft: "10px" }}>{state.error}</span>} */}
+      Logout
     </button>
   );
 };

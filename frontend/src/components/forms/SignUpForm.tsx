@@ -1,6 +1,15 @@
+"use client";
+
+import { useActionState } from "react";
+
+import { signUp } from "@/actions/signUp";
+
 const SignUpForm = () => {
+  const [state, action, pending] = useActionState(signUp, undefined);
+
   return (
     <form
+      action={action}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -13,31 +22,54 @@ const SignUpForm = () => {
         <label htmlFor="name" style={{ display: "block" }}>
           Name
         </label>
-        <input type="text" id="name" name="name" required />
+        <input type="text" id="name" name="name" />
+        {state?.errors?.properties?.name && (
+          <p style={{ color: "red" }}>{state.errors.properties.name.errors}</p>
+        )}
       </div>
 
       <div>
         <label htmlFor="email" style={{ display: "block" }}>
           Email
         </label>
-        <input type="email" id="email" name="email" required />
+        <input type="email" id="email" name="email" />
+        {state?.errors?.properties?.email && (
+          <p style={{ color: "red" }}>{state.errors.properties.email.errors}</p>
+        )}
       </div>
 
       <div>
         <label htmlFor="password" style={{ display: "block" }}>
           Password
         </label>
-        <input type="password" id="password" name="password" required />
+        <input type="password" id="password" name="password" />
+        {state?.errors?.properties?.password && (
+          <div style={{ color: "red" }}>
+            <p>Password must:</p>
+            <ul>
+              {state.errors.properties.password.errors.map((error) => (
+                <li key={error} style={{ listStyleType: "disc", marginLeft: "20px" }}>
+                  {error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div>
         <label htmlFor="confirmPassword" style={{ display: "block" }}>
           Confirm Password
         </label>
-        <input type="password" id="confirmPassword" name="confirmPassword" required />
+        <input type="password" id="confirmPassword" name="confirmPassword" />
+        {state?.errors?.properties?.confirmPassword && (
+          <p style={{ color: "red" }}>{state.errors.properties.confirmPassword.errors}</p>
+        )}
       </div>
 
-      <button type="submit">Sign Up</button>
+      <button type="submit" disabled={pending}>
+        {pending ? "Submitting..." : "Sign Up"}
+      </button>
     </form>
   );
 };

@@ -18,7 +18,7 @@ export type AuthResponse = {
 
 export class UserService {
   // method to create a new user (and log them in automatically)
-  async registerUser(userData: CreateUserInput): Promise<AuthResponse> {
+  async signUpUser(userData: CreateUserInput): Promise<AuthResponse> {
     const { password, ...restUserData } = userData;
 
     // hash the password
@@ -65,7 +65,7 @@ export class UserService {
   }
 
   // method to log in an existing user
-  async loginUser(email: string, plainTextPassword: string): Promise<AuthResponse> {
+  async signInUser(email: string, plainTextPassword: string): Promise<AuthResponse> {
     try {
       // find the user by email
       const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
