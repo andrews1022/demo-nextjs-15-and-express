@@ -30,6 +30,9 @@ type SignUpState =
     }
   | undefined;
 
+// circular reference ??
+// type Test = Awaited<ReturnType<typeof signUp>>;
+
 export const signUp = async (state: SignUpState, formData: FormData) => {
   // 1. Validate fields
   const validationResult = SignUpFormSchema.safeParse({

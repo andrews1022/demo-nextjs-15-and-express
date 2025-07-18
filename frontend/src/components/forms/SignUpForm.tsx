@@ -7,7 +7,7 @@ import { signUp } from "@/actions/signUp";
 
 const SignUpForm = () => {
   const router = useRouter();
-  const [state, action, pending] = useActionState(signUp, undefined);
+  const [state, formAction, isPending] = useActionState(signUp, undefined);
 
   useEffect(() => {
     if (state?.userId) {
@@ -17,7 +17,7 @@ const SignUpForm = () => {
 
   return (
     <form
-      action={action}
+      action={formAction}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -75,8 +75,8 @@ const SignUpForm = () => {
         )}
       </div>
 
-      <button type="submit" disabled={pending}>
-        {pending ? "Submitting..." : "Sign Up"}
+      <button type="submit" disabled={isPending}>
+        {isPending ? "Submitting..." : "Sign Up"}
       </button>
     </form>
   );
