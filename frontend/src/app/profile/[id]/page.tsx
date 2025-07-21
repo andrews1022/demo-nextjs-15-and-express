@@ -1,18 +1,14 @@
 import CreatePostForm from "@/components/forms/CreatePostForm";
+import { verifySession } from "@/lib/session";
 
-const ProfilePage = () => {
-  // const { id } = await params;
-  // const user = await getUserData(id);
+const ProfilePage = async () => {
+  const session = await verifySession();
 
   return (
     <div>
       <h1>User Profile</h1>
-      {/* {error && <div style={{ color: "red" }}>{error}</div>} */}
-      {/* {user && user.data.user && (
-        <div style={{ marginBottom: "16px" }}>
-          <strong>Name:</strong> {user.data.user.name}
-        </div>
-      )} */}
+
+      {session?.userName && <h2>Welcome back, {session.userName}!</h2>}
       <CreatePostForm />
     </div>
   );

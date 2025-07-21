@@ -6,6 +6,11 @@ import { redirect } from "next/navigation";
 import { cookieHelper } from "@/lib/cookieHelper";
 import { decryptToken, encryptToken } from "@/lib/token";
 
+type UserSession = {
+  userId: string;
+  userName: string;
+};
+
 export const createSession = async (userId: string): Promise<void> => {
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day from now
   const session = await encryptToken({ userId, expires });
@@ -20,17 +25,22 @@ export const createSession = async (userId: string): Promise<void> => {
   });
 };
 
-export const verifySession = async () => {
+export const verifySession = async (): Promise<UserSession | null> => {
   const cookieStore = await cookies();
   const cookieValue = cookieStore.get(cookieHelper.name)?.value;
 
   const session = await decryptToken(cookieValue);
 
-  if (session?.userId) {
-    return {
-      userId: session.userId,
-    };
+  if (!session) {
+    return null;
   }
+
+  const sessionObj = {
+    userId: session.userId,
+    userName: session.userName,
+  };
+
+  return sessionObj;
 };
 
 export const updateSession = async (): Promise<null | undefined> => {

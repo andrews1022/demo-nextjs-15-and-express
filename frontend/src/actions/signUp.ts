@@ -35,9 +35,9 @@ export const signUp = async (input: SignUpFormInputs) => {
 
     // 3. Create the session
     const registeredUserData = await response.json();
-
     await createSession(registeredUserData.data.user.id);
 
+    // return the user ID so we can redirect to the profile page
     return {
       userId: registeredUserData.data.user.id,
     };
