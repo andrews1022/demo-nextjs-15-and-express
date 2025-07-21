@@ -2,8 +2,9 @@
 
 import z from "zod";
 
-import { SignUpFormSchema } from "@/formSchemas/definitions";
-import { createSession } from "@/sesh/session";
+import { baseExpressApiUrl } from "@/lib/apiUrl";
+import { SignUpFormSchema } from "@/lib/formSchemaDefinitions";
+import { createSession } from "@/lib/session";
 
 type SignUpErrors =
   | {
@@ -52,7 +53,7 @@ export const signUp = async (state: SignUpState, formData: FormData) => {
   const { name, email, password } = validationResult.data;
 
   try {
-    const response = await fetch("http://localhost:4000/api/users/sign-up", {
+    const response = await fetch(`${baseExpressApiUrl}/users/sign-up`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

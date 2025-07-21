@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import LogoutButton from "@/components/LogoutButton";
-import { deleteSession, verifySession } from "@/sesh/session";
+import { deleteSession, verifySession } from "@/lib/session";
 
 const AppHeader = async () => {
   const session = await verifySession();

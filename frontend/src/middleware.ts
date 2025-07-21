@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-import { decrypt } from "@/sesh/session";
-import { cookieHelper } from "@/constants/cookies";
+import { cookieHelper } from "@/lib/cookieHelper";
+import { decryptToken } from "@/lib/token";
 
 // 1. Specify protected routes
 const protectedRoutes = ["/profile"];
@@ -15,7 +15,7 @@ export const middleware = async (req: NextRequest) => {
   // 3. Decrypt the session from the cookie
   const cookieStore = await cookies();
   const cookie = cookieStore.get(cookieHelper.name)?.value;
-  const session = await decrypt(cookie);
+  const session = await decryptToken(cookie);
 
   // 4. Redirects
   if (isProtectedRoute && !session?.userId) {

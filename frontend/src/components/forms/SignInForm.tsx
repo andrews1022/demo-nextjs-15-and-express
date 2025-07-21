@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { signIn } from "@/actions/signIn";
+
+import { baseExpressApiUrl } from "@/lib/apiUrl";
 
 type LoginResponseData = {
   data: {
@@ -41,7 +42,7 @@ const SignInForm = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:4000/api/users/sign-in", {
+      const response = await fetch(`${baseExpressApiUrl}/users/sign-in`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
