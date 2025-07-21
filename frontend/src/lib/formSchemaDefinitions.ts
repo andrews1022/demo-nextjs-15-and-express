@@ -21,5 +21,5 @@ export const SignUpFormSchema = z
 
 export const SignInFormSchema = z.object({
   email: z.string(),
-  password: z.string().min(6).max(100),
+  password: z.string(),
 });
