@@ -11,9 +11,10 @@ type UserSession = {
   userName: string;
 };
 
-export const createSession = async (userId: string): Promise<void> => {
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day from now
-  const session = await encryptToken({ userId, expires });
+export const createSession = async (userData: UserSession): Promise<void> => {
+  const oneDayFromNowInMiliseconds = 24 * 60 * 60 * 1000;
+  const expires = new Date(Date.now() + oneDayFromNowInMiliseconds);
+  const session = await encryptToken({ ...userData, expires });
 
   const cookieStore = await cookies();
   cookieStore.set(cookieHelper.name, session, {
