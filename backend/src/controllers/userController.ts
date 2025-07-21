@@ -3,7 +3,8 @@ import { NextFunction, Request, Response } from "express";
 import { config } from "@/config";
 import { BadRequestError, NotFoundError } from "@/lib/customErrors";
 import { UserService } from "@/services/userService";
-import type { CreateUserInput } from "@/types/users";
+import type { CreateUserInput, DrizzleSelectUser, SignInUserInput } from "@/types/users";
+import type { ExpressControllerResponse } from "@/types/controller";
 
 const userService = new UserService();
 
@@ -15,12 +16,20 @@ const cookieOptions = {
   maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
 };
 
+type OmittedPasswordUserResponse = {
+  user: Omit<DrizzleSelectUser, "password">;
+};
+
 export class UserController {
   // Handles user registration (POST /api/users/sign-up)
   // Creates a new user and returns the user data along with a JWT
-  async signUpUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signUpUser(
+    req: Request<{}, {}, CreateUserInput>,
+    res: Response<ExpressControllerResponse<OmittedPasswordUserResponse>>,
+    next: NextFunction,
+  ): Promise<void> {
     try {
-      const { name, email, password } = req.body as CreateUserInput;
+      const { name, email, password } = req.body;
 
       // Input validation using BadRequestError
       if (!name || !email || !password) {
@@ -47,7 +56,11 @@ export class UserController {
 
   // Handles user login (POST /api/users/sign-in)
   // Authenticates user and returns a JWT
-  async signInUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signInUser(
+    req: Request<{}, {}, SignInUserInput>,
+    res: Response<ExpressControllerResponse<OmittedPasswordUserResponse>>,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { email, password } = req.body;
 
@@ -74,7 +87,11 @@ export class UserController {
   }
 
   // Handles user logout by clearing the HttpOnly cookie
-  async signOutUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async signOutUser(
+    req: Request,
+    res: Response<ExpressControllerResponse<{ message: string }>>,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       // Clear the cookie. The value doesn't matter, just the name and options.
       res.clearCookie(config.jwtName);
@@ -92,7 +109,11 @@ export class UserController {
 
   // Handles fetching user data by ID (GET /api/users/:id)
   // This route is protected by the authenticateToken middleware
-  async getUserById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getUserById(
+    req: Request,
+    res: Response<ExpressControllerResponse<OmittedPasswordUserResponse>>,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       // The user ID from the JWT is now available on req.user.id
       const userIdFromToken = (req as any).user?.id; // will be typed properly in the middleware

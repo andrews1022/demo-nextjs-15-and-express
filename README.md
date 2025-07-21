@@ -2,6 +2,8 @@
 
 A simple full-stack application using Next.js and Express.js. Using mock data from JSONPlaceholder converted to a format suitable for PostgreSQL.
 
+Copilot commit message prompt: "Could you please help me write a point-form list for a commit message of the changes made in these files?"
+
 ## Features
 
 - Front-end

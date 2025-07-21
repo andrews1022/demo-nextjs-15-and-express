@@ -11,8 +11,8 @@ const BCRYPT_SALT_ROUNDS = 10;
 
 // Define a type for the successful authentication response
 // This is what loginUser and registerUser will return
-export type AuthResponse = {
-  user: Omit<DrizzleSelectUser, "password">; // User data without the password
+type AuthResponse = {
+  user: Omit<DrizzleSelectUser, "password">;
   token: string;
 };
 

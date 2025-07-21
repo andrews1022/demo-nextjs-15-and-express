@@ -27,3 +27,8 @@ export type CreateUserInput = {
   email: string;
   password: string;
 };
+
+export type SignInUserInput = {
+  email: string;
+  password: string;
+};
