@@ -5,6 +5,7 @@ import z from "zod";
 import { baseExpressApiUrl } from "@/lib/apiUrl";
 import { SignUpFormSchema } from "@/lib/formSchemaDefinitions";
 import { createSession } from "@/lib/session";
+
 import type { SignUpFormInputs } from "@/types/forms";
 
 export const signUp = async (input: SignUpFormInputs) => {

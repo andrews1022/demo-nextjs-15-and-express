@@ -10,7 +10,7 @@ const passwordSchema = z
 export const SignUpFormSchema = z
   .object({
     name: z.string().min(2, { message: "Name must be at least 2 characters long" }).trim(),
-    email: z.string().email({ message: "Invalid email address" }).trim(),
+    email: z.email({ message: "Invalid email address" }).trim(),
     password: passwordSchema,
     confirmPassword: z.string().trim(),
   })
@@ -20,6 +20,6 @@ export const SignUpFormSchema = z
   });
 
 export const SignInFormSchema = z.object({
-  email: z.string(),
-  password: z.string(),
+  email: z.email({ message: "Invalid email address" }).trim(),
+  password: passwordSchema,
 });

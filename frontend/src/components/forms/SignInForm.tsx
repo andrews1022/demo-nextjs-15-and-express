@@ -1,86 +1,53 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 
-import { baseExpressApiUrl } from "@/lib/apiUrl";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type LoginResponseData = {
-  data: {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-      createdAt: string;
-      updatedAt: string;
-    };
-  };
-};
+import { signIn } from "@/actions/signIn";
+import { SignInFormSchema } from "@/lib/formSchemaDefinitions";
+import type { SignInFormInputs } from "@/types/forms";
 
 const SignInForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
 
-  const handleOnSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+  } = useForm<SignInFormInputs>({
+    resolver: zodResolver(SignInFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-    const formData = new FormData(event.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
-
-    if (!email || !password) {
-      setError("Email and password are required.");
-      return;
-    }
-
-    const dataToSend = {
-      email,
-      password,
-    };
-    console.log("dataToSend:", dataToSend);
-
-    setError(null);
+  const handleOnSubmit = async (data: SignInFormInputs) => {
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${baseExpressApiUrl}/users/sign-in`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // ensures cookies are sent with the request
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      // Call the signIn server action which will:
+      // - Perform some server-side validation
+      // - Make the POST request to the sign-in API endpoint
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData?.message || "Sign-in failed");
-        return;
-      }
-
-      const responseData: LoginResponseData = await response.json();
-      const { id } = responseData?.data?.user;
-
-      if (id) {
-        router.push(`/profile/${id}`);
-      } else {
-        setError("User ID not found in response");
-      }
+      const resp = await signIn(data); // `data` is already validated
+      router.push(`/profile/${resp?.userId}`);
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message || "Error during sign-in");
-      } else {
-        setError("Error during sign-in");
-      }
-      console.error("Error during sign-in:", error);
+      console.error("Error during sign in:", error);
+      // Handle error appropriately, e.g., show a notification like a toast
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <form
-      // action={signIn}
+      onSubmit={handleSubmit(handleOnSubmit)}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -93,18 +60,21 @@ const SignInForm = () => {
         <label htmlFor="email" style={{ display: "block" }}>
           Email
         </label>
-        <input type="email" id="email" name="email" required />
+        <input type="email" id="email" {...register("email")} />
+        {errors.email && <p style={{ color: "red" }}>{errors.email.message}</p>}
       </div>
 
       <div>
         <label htmlFor="password" style={{ display: "block" }}>
           Password
         </label>
-        <input type="password" id="password" name="password" required />
+        <input type="password" id="password" {...register("password")} />
+        {errors.password && <p style={{ color: "red" }}>{errors.password.message}</p>}
       </div>
 
-      <button type="submit">Sign In</button>
-      {error && <div style={{ color: "red", marginTop: "10px" }}>{error}</div>}
+      <button disabled={isSubmitting} type="submit">
+        {isSubmitting ? "Signing In..." : "Sign In"}
+      </button>
     </form>
   );
 };

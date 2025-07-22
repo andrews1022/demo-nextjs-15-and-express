@@ -98,7 +98,7 @@ export class UserController {
 
       res.status(200).json({
         data: {
-          message: "Logged out successfully.",
+          message: "Signed out successfully.",
         },
       });
     } catch (error) {
