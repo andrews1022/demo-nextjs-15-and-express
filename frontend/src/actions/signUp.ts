@@ -35,18 +35,16 @@ export const signUp = async (input: SignUpFormInputs) => {
     });
 
     // 3. Create the session
-    const registeredUserData = await response.json();
+    const signedUpUserData = await response.json();
 
-    const userSessionData = {
-      userId: registeredUserData.data.user.id,
-      userName: registeredUserData.data.user.name,
-    };
-
-    await createSession(userSessionData);
+    await createSession({
+      userId: signedUpUserData.data.user.id,
+      userName: signedUpUserData.data.user.name,
+    });
 
     // return the user ID so we can redirect to the profile page
     return {
-      userId: registeredUserData.data.user.id,
+      userId: signedUpUserData.data.user.id,
     };
   } catch (error) {
     console.error("Error signing up:", error);

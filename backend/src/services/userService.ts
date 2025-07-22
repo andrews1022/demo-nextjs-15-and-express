@@ -72,14 +72,14 @@ export class UserService {
 
       if (!user) {
         // use BadRequestError for "invalid credentials" to avoid leaking whether email exists
-        throw new BadRequestError("Invalid credentials.");
+        throw new BadRequestError("Invalid credentials. User not found.");
       }
 
       const isPasswordValid = await bcrypt.compare(plainTextPassword, user.password);
 
       if (!isPasswordValid) {
         // use BadRequestError for "invalid credentials"
-        throw new BadRequestError("Invalid credentials.");
+        throw new BadRequestError("Invalid credentials. Incorrect password.");
       }
 
       // omit the password before returning and generating the token

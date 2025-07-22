@@ -11,6 +11,7 @@ import { SignInFormSchema } from "@/lib/formSchemaDefinitions";
 import type { SignInFormInputs } from "@/types/forms";
 
 const SignInForm = () => {
+  const [generalError, setGeneralError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
@@ -36,10 +37,17 @@ const SignInForm = () => {
       // - Make the POST request to the sign-in API endpoint
 
       const resp = await signIn(data); // `data` is already validated
+
+      // if the user tries to sign in with invalid credentials:
+      if (resp?.errors) {
+        setGeneralError(resp.errors);
+        return;
+      }
+
       router.push(`/profile/${resp?.userId}`);
     } catch (error) {
       console.error("Error during sign in:", error);
-      // Handle error appropriately, e.g., show a notification like a toast
+      setGeneralError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -56,6 +64,8 @@ const SignInForm = () => {
         margin: "20px 0",
       }}
     >
+      {generalError && <p style={{ color: "red" }}>{generalError}</p>}
+
       <div>
         <label htmlFor="email" style={{ display: "block" }}>
           Email

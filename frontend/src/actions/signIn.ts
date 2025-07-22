@@ -33,14 +33,26 @@ export const signIn = async (input: SignInFormInputs) => {
       }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      // example:
+      // errorData:  {
+      //   ok: false,
+      //   message: 'Invalid credentials. User not found.',
+      //   stack: '<stack_trace_here>',
+      //   status: 400
+      // }
+
+      return { errors: errorData?.message || "Sign in failed." };
+    }
+
     // 3. Create session
     const signedInUserData = await response.json();
 
-    const userSessionData = {
+    await createSession({
       userId: signedInUserData.data.user.id,
       userName: signedInUserData.data.user.name,
-    };
-    await createSession(userSessionData);
+    });
 
     // return the user ID so we can redirect to the profile page
     return {
