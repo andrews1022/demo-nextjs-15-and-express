@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 import { cookieHelper } from "@/lib/cookieHelper";
-import { decryptToken } from "@/lib/token";
+import { decryptToken } from "@/lib/jwtUtils";
 
 // 1. Specify protected routes
 const protectedRoutes = ["/profile"];

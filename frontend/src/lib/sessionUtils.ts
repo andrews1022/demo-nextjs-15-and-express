@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { cookieHelper } from "@/lib/cookieHelper";
-import { decryptToken, encryptToken } from "@/lib/token";
+import { decryptToken, encryptToken } from "@/lib/jwtUtils";
 
 type UserSession = {
   userId: string;

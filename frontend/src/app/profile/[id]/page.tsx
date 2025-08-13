@@ -1,5 +1,5 @@
 import CreatePostForm from "@/components/forms/CreatePostForm";
-import { verifySession } from "@/lib/session";
+import { verifySession } from "@/lib/sessionUtils";
 
 const ProfilePage = async () => {
   const session = await verifySession();

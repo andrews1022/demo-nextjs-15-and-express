@@ -4,7 +4,7 @@ import z from "zod";
 
 import { baseExpressApiUrl } from "@/lib/apiUrl";
 import { SignInFormSchema } from "@/lib/formSchemaDefinitions";
-import { createSession } from "@/lib/session";
+import { createSession } from "@/lib/sessionUtils";
 
 import { SignInFormInputs } from "@/types/forms";
 
